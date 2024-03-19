@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/Bot_Home"
+        android:icon="@drawable/free_icon_antenna_1011309"
+        android:title="БС"/>
+    <item
+        android:id="@+id/Bot_Second"
+        android:icon="@drawable/free_icon_antenna_9424822"
+        android:title="Соседи"/>
+    <item
+        android:id="@+id/Bot_Map"
+        android:icon="@drawable/free_icon_map_854929"
+        android:title="Карта"/>
+    <item
+        android:id="@+id/Bot_Indoor"
+        android:icon="@drawable/free_icon_roadmap_2116935"
+        android:title="Indoor"/>
+    <item
+        android:id="@+id/Bot_Setting"
+        android:icon="@drawable/free_icon_settings_563541"
+        android:title="Настройки"/>
+</menu>
