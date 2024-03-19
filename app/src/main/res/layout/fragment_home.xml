@@ -71,7 +71,9 @@
             android:textColor="@color/white"
             android:textSize="24sp"
             android:textStyle="bold" />
+
         <include
+            android:id="@+id/speed"
             layout="@layout/speed"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />

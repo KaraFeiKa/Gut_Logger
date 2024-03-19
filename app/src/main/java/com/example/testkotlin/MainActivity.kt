@@ -1,21 +1,12 @@
 package com.example.testkotlin
 
-import android.annotation.SuppressLint
+import android.content.Intent
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.telephony.CellInfo
-import android.telephony.CellInfoLte
-import android.telephony.CellLocation
-import android.telephony.CellSignalStrengthLte
-import android.telephony.PhysicalChannelConfig
-import android.telephony.ServiceState
-import android.telephony.SignalStrength
-import android.telephony.TelephonyCallback
-import android.telephony.TelephonyManager
-import android.util.Log
 
 import androidx.annotation.RequiresApi
+import com.example.testkotlin.Info.ServiceBack
 import com.example.testkotlin.databinding.ActivityMainBinding
 import com.example.testkotlin.fragments.HomeFragment
 import com.example.testkotlin.fragments.IndoorFragment
@@ -51,6 +42,11 @@ class MainActivity : AppCompatActivity() {
             }
             true
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        stopService(Intent(this, ServiceBack::class.java))
     }
 
 

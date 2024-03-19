@@ -32,7 +32,7 @@
             </intent-filter>
         </activity>
         <service
-            android:name=".Location.ServiceBack"
+            android:name=".Info.ServiceBack"
             android:foregroundServiceType="location"
             android:enabled="true"/>
     </application>
