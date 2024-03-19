@@ -9,6 +9,7 @@ import android.app.Service
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
+import android.os.Environment
 import android.os.IBinder
 import android.os.Looper
 import android.telephony.CellInfo
@@ -25,16 +26,23 @@ import com.example.testkotlin.R
 import com.example.testkotlin.TrafficSpeed.ITrafficSpeedListener
 import com.example.testkotlin.TrafficSpeed.TrafficSpeedMeasurer
 import com.example.testkotlin.TrafficSpeed.Utils
+import com.example.testkotlin.fragments.HomeFragment
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
+import com.opencsv.CSVWriter
+import java.io.FileWriter
+import java.io.IOException
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 class ServiceBack: Service() {
     private lateinit var tm:TelephonyManager
     val myTelephonyCallback = MyTelephonyCallback(this)
+
 //    val myTelephonyCallbackSignalStrength = MyTelephonyCallbackSignalStrength(this)
 
     private lateinit var locProvider: FusedLocationProviderClient
@@ -42,6 +50,7 @@ class ServiceBack: Service() {
     private val SHOW_SPEED_IN_BITS = false
 
     private lateinit var mTrafficSpeedMeasurer: TrafficSpeedMeasurer
+
 
     override fun onBind(p0: Intent?): IBinder? {
         return null
@@ -64,7 +73,9 @@ class ServiceBack: Service() {
         tm.registerTelephonyCallback(mainExecutor, myTelephonyCallback)
         mTrafficSpeedMeasurer = TrafficSpeedMeasurer(TrafficSpeedMeasurer.TrafficType.MOBILE)
         mTrafficSpeedMeasurer.startMeasuring()
-        mTrafficSpeedMeasurer.registerListener(mStreamSpeedListener);
+        mTrafficSpeedMeasurer.registerListener(mStreamSpeedListener)
+
+
 //        tm.registerTelephonyCallback(mainExecutor, myTelephonyCallbackSignalStrength)
     }
 
@@ -76,6 +87,7 @@ class ServiceBack: Service() {
     fun HexToDec(hex: String): Int {
         return hex.toInt(16)
     }
+
     @SuppressLint("NewApi")
     class MyTelephonyCallback(val activity: ServiceBack) : TelephonyCallback(), TelephonyCallback.CellInfoListener{
         override fun onCellInfoChanged(cellInfo: MutableList<CellInfo>) {
@@ -98,6 +110,7 @@ class ServiceBack: Service() {
                         } else {
 
                         }
+                        Log.d("Butt", WriterIsWorking.toString())
                         val CID = cell.cellIdentity.ci
                         val cellidHex = activity.DecToHex(CID)
                         val eNBHex = cellidHex.substring(0, cellidHex.length - 2)
@@ -108,9 +121,6 @@ class ServiceBack: Service() {
                                     it,
                                     it1,
                                     cell.cellIdentity.ci,
-
-
-
                                     band,
                                     activity.HexToDec(eNBHex),
                                     cell.cellIdentity.earfcn,
@@ -255,6 +265,7 @@ class ServiceBack: Service() {
 
     private val mStreamSpeedListener = object : ITrafficSpeedListener {
         override fun onTrafficSpeedMeasured(upStream: Double, downStream: Double) {
+
             val speedModel = SpeedModel (
                 Utils.parseSpeed(upStream, SHOW_SPEED_IN_BITS),
                 Utils.parseSpeed(downStream, SHOW_SPEED_IN_BITS)
@@ -270,12 +281,16 @@ class ServiceBack: Service() {
     }
 
 
+
+
     companion object{
         const val Speed_MODLE_INTENT = "Speed_intent"
         const val CHANNEL_ID = "channel_1"
         const val LOC_MODLE_INTENT = "loc_intent"
         const val SIGNAL_MODLE_INTENT = "signal_intent"
         const val BS_MODLE_INTENT = "BS_intent"
+        var WriterIsWorking = false
+
 
     }
 }
