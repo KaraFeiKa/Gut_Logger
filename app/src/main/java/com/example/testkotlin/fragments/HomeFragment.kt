@@ -33,13 +33,14 @@ import java.io.FileWriter
 import java.io.IOException
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import kotlin.jvm.internal.Intrinsics.Kotlin
 
 class HomeFragment : Fragment() {
     private lateinit var binding: FragmentHomeBinding
     private lateinit var pLauncher: ActivityResultLauncher<Array<String>>
     private var ColorLogButt = false
     var lastFileName: String = ""
-    private lateinit var writer: CSVWriter
+    lateinit var writer: CSVWriter
     val nocProjectDirInDownload: String = "GUT_Logger"
     var csv: String = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).toString() + "/" + nocProjectDirInDownload+ "/" + lastFileName
 
@@ -57,7 +58,7 @@ class HomeFragment : Fragment() {
     var ci: Int = 0
     var band: Any = intArrayOf()
     var eNB: Int = 0
-    var     Earfcn: Int = 0
+    var Earfcn: Int = 0
     var pci: Int = 0
     var tac: Int = 0
     var rssi: Int = 0
@@ -249,8 +250,10 @@ class HomeFragment : Fragment() {
         override fun onReceive(context: Context?, s: Intent?) {
             if (s?.action == ServiceBack.Speed_MODLE_INTENT){
                 val speedModel = s.getSerializableExtra(ServiceBack.Speed_MODLE_INTENT) as SpeedModel
-                binding.speed.speedUL.text= speedModel.UL
-                binding.speed.speedDL.text = speedModel.DL
+                DLSpeed = speedModel.UL
+                ULSpeed = speedModel.DL
+                binding.speed.speedUL.text= DLSpeed
+                binding.speed.speedDL.text = ULSpeed
             }
         }
     }
@@ -270,16 +273,21 @@ class HomeFragment : Fragment() {
                 eNB = bsInfoModel.eNB
                 pci = bsInfoModel.pci
                 Earfcn =bsInfoModel.Earfcn
-                band = bsInfoModel.band
+                if (bsInfoModel.band != Unit){
+                    band = bsInfoModel.band
+                }
+                else{
+                    band = BandPlus
+                }
                 binding.bsInfo.resOperator.text = Operator
                 binding.bsInfo.resCellId.text = ci.toString()
                 binding.bsInfo.resTacLac.text = tac.toString()
                 binding.bsInfo.resENB.text = eNB.toString()
                 binding.bsInfo.resPci.text = pci.toString()
                 binding.bsInfo.resEARFCN.text = Earfcn.toString()
-                binding.bsInfo.resBand.text = band.toString()
-                binding.bsInfo.resDl.text = FDL.toString()
-                binding.bsInfo.resUl.text = FUL.toString()
+                binding.bsInfo.resBand.text = "$band ($NameR)"
+                binding.bsInfo.resDl.text = "$FDL МГц"
+                binding.bsInfo.resUl.text = "$FUL МГц"
 
             }
         }
@@ -289,45 +297,47 @@ class HomeFragment : Fragment() {
         override fun onReceive(context: Context?, q: Intent?) {
             if (q?.action == ServiceBack.SIGNAL_MODLE_INTENT){
                 val signalModel = q.getSerializableExtra(ServiceBack.SIGNAL_MODLE_INTENT) as SignalModel
-                Log.d("Check", signalModel.toString())
-                rssi = signalModel.rssi
-                rsrp = signalModel.rsrp
-                rsrq = signalModel.rsrq
-                snr = signalModel.snr
-                ta = signalModel.ta
-                cqi = signalModel.cqi
-
-
-
 
                 if (signalModel.rssi != Int.MAX_VALUE && signalModel.rssi >= -140 && signalModel.rssi <= -43){
+                    rssi = signalModel.rssi
                     binding.signalInfo.resRssi.text = rssi.toString() + " дБм"
                 }else{
+                    rssi = -0
                     binding.signalInfo.resRssi.text = "N/a"
                 }
                 if (signalModel.rsrp != Int.MAX_VALUE && signalModel.rsrp < 0){
-                    binding.signalInfo.resRsrp.text = rsrp.toString() + " дБм"
+                    rsrp = signalModel.rsrp
+                    binding.signalInfo.resRsrp.text = "$rsrp дБм"
                 }else{
+                    rsrp = -0
                     binding.signalInfo.resRsrp.text = "N/a"
                 }
                 if (signalModel.rsrq != Int.MAX_VALUE){
-                    binding.signalInfo.resRsrq.text = rsrq.toString() + " дБ"
+                    rsrq = signalModel.rsrq
+                    binding.signalInfo.resRsrq.text = "$rsrq дБ"
                 }else{
+                    rsrq = -0
                     binding.signalInfo.resRsrq.text = "N/a"
                 }
                 if (signalModel.snr != Int.MAX_VALUE){
-                    binding.signalInfo.resSnr.text =    snr.toString() + " дБ"
+                    snr = signalModel.snr
+                    binding.signalInfo.resSnr.text = "$snr дБ"
                 }else{
+                    snr = -0
                     binding.signalInfo.resSnr.text = "N/a"
                 }
                 if (signalModel.cqi != Int.MAX_VALUE){
-                    binding.signalInfo.resSnr.text = cqi.toString()
+                    cqi = signalModel.cqi
+                    binding.signalInfo.resCqi.text = cqi.toString()
                 }else{
+                    cqi = -0
                     binding.signalInfo.resCqi.text = "N/a"
                 }
                 if (signalModel.ta != Int.MAX_VALUE){
+                    ta = signalModel.ta
                     binding.bsInfo.resTA.text = ta.toString()
                 }else{
+                    ta = -0
                     binding.bsInfo.resTA.text = "N/a"
                 }
             }
@@ -383,9 +393,9 @@ class HomeFragment : Fragment() {
                 "",
                 "",
                 cqi.toString(),
-                "Устарело",
-                "Устарело",
-                "Устарело",
+                "delite",
+                "delite",
+                "delite",
                 ta.toString(),
                 ULSpeed,
                 DLSpeed
@@ -393,8 +403,6 @@ class HomeFragment : Fragment() {
             writer.writeNext(str, false)
         }
     }
-
-
     private fun calc() {
         var FDL_low: Float
         var NDL: Int

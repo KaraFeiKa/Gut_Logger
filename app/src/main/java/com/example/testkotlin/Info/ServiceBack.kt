@@ -14,6 +14,8 @@ import android.os.IBinder
 import android.os.Looper
 import android.telephony.CellInfo
 import android.telephony.CellInfoLte
+import android.telephony.CellSignalStrengthLte
+import android.telephony.SignalStrength
 import android.telephony.TelephonyCallback
 import android.telephony.TelephonyManager
 import android.util.Log
@@ -107,10 +109,7 @@ class ServiceBack: Service() {
                         var bands = cell.cellIdentity.bands
                         var band = if (bands.isNotEmpty()){
                             bands[0]
-                        } else {
-
-                        }
-                        Log.d("Butt", WriterIsWorking.toString())
+                        } else { }
                         val CID = cell.cellIdentity.ci
                         val cellidHex = activity.DecToHex(CID)
                         val eNBHex = cellidHex.substring(0, cellidHex.length - 2)
@@ -147,12 +146,13 @@ class ServiceBack: Service() {
 //            for (cellSignalStrength in strengthAmplitude) {
 //                if (cellSignalStrength is CellSignalStrengthLte) {
 //                    Log.d("Signal2", cellSignalStrength.toString())
+//
 //                    val signalModel=SignalModel(
-//                    cellSignalStrength.rssi,
-//                    cellSignalStrength.rsrp,
-//                    cellSignalStrength.rsrq,
-//                    cellSignalStrength.rssnr,
-//                    cellSignalStrength.cqi,
+////                    cellSignalStrength.rssi,
+////                    cellSignalStrength.rsrp,
+////                    cellSignalStrength.rsrq,
+////                    cellSignalStrength.rssnr,
+////                    cellSignalStrength.cqi,
 //                    )
 //                    activity.sendSignData(signalModel)
 //                }
@@ -160,9 +160,6 @@ class ServiceBack: Service() {
 //        }
 //    }
 
-
-//    private val cc = MyTelephonyCallbackSignalStrength(this)
-    private val cc2 = MyTelephonyCallback(this)
     private fun sendSignData(signModel: SignalModel){
         val q = Intent(SIGNAL_MODLE_INTENT)
         q.putExtra(SIGNAL_MODLE_INTENT, signModel)
@@ -176,7 +173,6 @@ class ServiceBack: Service() {
         LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(w)
 
     }
-
 
     private fun startNotification() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -261,12 +257,11 @@ class ServiceBack: Service() {
         locProvider.removeLocationUpdates(locCallBack)
     }
 
-
-
     private val mStreamSpeedListener = object : ITrafficSpeedListener {
         override fun onTrafficSpeedMeasured(upStream: Double, downStream: Double) {
 
             val speedModel = SpeedModel (
+
                 Utils.parseSpeed(upStream, SHOW_SPEED_IN_BITS),
                 Utils.parseSpeed(downStream, SHOW_SPEED_IN_BITS)
             )
@@ -279,9 +274,6 @@ class ServiceBack: Service() {
         s.putExtra(Speed_MODLE_INTENT, speedModel)
         LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(s)
     }
-
-
-
 
     companion object{
         const val Speed_MODLE_INTENT = "Speed_intent"
