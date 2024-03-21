@@ -1,11 +1,16 @@
 package com.example.testkotlin.fragments
 
 import android.app.Activity
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.Matrix
 import android.graphics.Paint
+import android.graphics.PointF
 import android.os.Bundle
 import android.provider.MediaStore
 import android.view.LayoutInflater
@@ -16,25 +21,49 @@ import com.example.testkotlin.databinding.FragmentIndoorBinding
 import android.net.Uri
 import android.view.MotionEvent
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import com.example.testkotlin.Info.ServiceBack
+import com.example.testkotlin.Info.SignalModel
+import com.example.testkotlin.R
+import com.ortiz.touchview.TouchImageView
 
 class IndoorFragment : Fragment() {
 
-    private var bitmap: Bitmap? = null
-    private val points = mutableListOf<Pair<Float, Float>>()
-    private lateinit var binding: FragmentIndoorBinding
-    private var originalBitmap: Bitmap? = null
+    var rssi: Int = 0
+    var rsrp: Int = 0
+    var rsrq: Int = 0
+    var snr: Int = 0
+    var cqi: Int = 0
 
-    private var previousX = 0f
-    private var previousY = 0f
+    private lateinit var imageView: TouchImageView
+    private lateinit var bitmap: Bitmap
+    private lateinit var canvas: Canvas
+    private lateinit var binding: FragmentIndoorBinding
+    private val points = mutableListOf<Pair<Float, Float>>()
+
+    private var drawingMode = false
+
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         binding = FragmentIndoorBinding.inflate(inflater, container, false)
+        imageView = binding.imageView
+        imageView.setZoom(1f)
+
+        imageView.setOnTouchListener { _, event ->
+            if (drawingMode) {
+                handleTouch(event)
+            } else {
+                false
+            }
+        }
 
         binding.buttForIndoor.Load.setOnClickListener {
-            openGallery()
+            loadImageFromGallery()
         }
 
         binding.buttForIndoor.ClearAll.setOnClickListener {
@@ -49,77 +78,87 @@ class IndoorFragment : Fragment() {
             saveImageToGallery()
         }
 
-        drawLine()
+        binding.buttForIndoor.btnToggleMode.setOnClickListener {
+            drawingMode = !drawingMode
+            if (drawingMode) {
+                // Режим рисования
+                Toast.makeText(requireContext(), "Режим рисования включен", Toast.LENGTH_SHORT).show()
+            } else {
+                // Режим перемещения/приближения
+                Toast.makeText(requireContext(), "Режим рисования выключен", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        bitmap = Bitmap.createBitmap(1500, 1500, Bitmap.Config.ARGB_8888)
+        canvas = Canvas(bitmap)
 
         return binding.root
     }
 
-    private fun openGallery() {
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        registerLocReceiver()
+    }
+
+    private fun handleTouch(event: MotionEvent): Boolean {
+        val touchPoint = floatArrayOf(event.x, event.y)
+        val inverted = Matrix()
+        imageView.getImageMatrix().invert(inverted)
+        inverted.mapPoints(touchPoint)
+
+        val bitmapX = touchPoint[0]
+        val bitmapY = touchPoint[1]
+
+        when (event.action) {
+            MotionEvent.ACTION_DOWN -> {
+                points.add(Pair(bitmapX, bitmapY))
+                drawPoints()
+            }
+            MotionEvent.ACTION_MOVE -> {
+                // Not needed for drawing points and lines
+            }
+        }
+
+        return true
+    }
+
+    private fun loadImageFromGallery() {
         val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-        startActivityForResult(intent, 1)
+        startActivityForResult(intent, PICK_IMAGE_REQUEST)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-
-        if (requestCode == 1 && resultCode == Activity.RESULT_OK && data != null) {
-            val selectedImageUri: Uri = data.data ?: return
-            originalBitmap = MediaStore.Images.Media.getBitmap(context?.contentResolver, selectedImageUri)
-            bitmap = originalBitmap?.copy(Bitmap.Config.ARGB_8888, true)
-            binding.imageView.setImageBitmap(bitmap)
-            points.clear()
-        }
-    }
-
-    private fun drawLine() {
-        binding.imageView.setOnTouchListener { _, event ->
-            if (bitmap != null) {
-                when (event.action) {
-                    MotionEvent.ACTION_DOWN -> {
-                        previousX = event.x
-                        previousY = event.y
-                    }
-                    MotionEvent.ACTION_MOVE -> {
-                        val dx = event.x - previousX
-                        val dy = event.y - previousY
-                        moveImage(dx, dy)
-                        previousX = event.x
-                        previousY = event.y
-                    }
-                    MotionEvent.ACTION_UP -> {
-                        val imageViewWidth = binding.imageView.width
-                        val imageViewHeight = binding.imageView.height
-                        val bitmapWidth = bitmap?.width ?: 1
-                        val bitmapHeight = bitmap?.height ?: 1
-
-                        val scaleX = event.x * (bitmapWidth.toFloat() / imageViewWidth.toFloat()) / binding.imageView.scaleX
-                        val scaleY = event.y * (bitmapHeight.toFloat() / imageViewHeight.toFloat()) / binding.imageView.scaleY
-
-                        points.add(Pair(scaleX, scaleY))
-                        drawPoints()
-                    }
-                }
+        if (requestCode == PICK_IMAGE_REQUEST && resultCode == Activity.RESULT_OK && data != null && data.data != null) {
+            val uri: Uri = data.data!!
+            try {
+                val selectedBitmap = MediaStore.Images.Media.getBitmap(requireContext().contentResolver, uri)
+                // Resize the selected bitmap to fit the canvas size
+                val scaledBitmap = Bitmap.createScaledBitmap(selectedBitmap, bitmap.width, bitmap.height, true)
+                // Draw the selected bitmap on the canvas
+                canvas.drawBitmap(scaledBitmap, 0f, 0f, null)
+                imageView.setImageBitmap(bitmap)
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
-            true
         }
-    }
-
-    private fun moveImage(dx: Float, dy: Float) {
-        binding.imageView.translationX += dx
-        binding.imageView.translationY += dy
+        points.clear()
     }
 
     private fun drawPoints() {
-        val tempBitmap = bitmap?.copy(Bitmap.Config.ARGB_8888, true) ?: return
-        val canvas = Canvas(tempBitmap)
-        drawPoints(canvas)
-        drawLines(canvas)
-        binding.imageView.setImageBitmap(tempBitmap)
+        val tempBitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true)
+        val tempCanvas = Canvas(tempBitmap)
+        drawPoints(tempCanvas)
+        drawLines(tempCanvas)
+        imageView.setImageBitmap(tempBitmap)
     }
-
+//    (rsrp >= -80)
+//    (rsrp <= -80 && rsrp >= -90)
+//    (rsrp <= -90 && rsrp >= -100)
+//    (rsrp <= -100)
     private fun drawPoints(canvas: Canvas) {
         val paint = Paint().apply {
-            color = Color.RED
+
             style = Paint.Style.FILL
         }
         for (point in points) {
@@ -129,9 +168,9 @@ class IndoorFragment : Fragment() {
 
     private fun drawLines(canvas: Canvas) {
         val paint = Paint().apply {
-            color = Color.BLUE
+            color = Color.BLACK
             style = Paint.Style.STROKE
-            strokeWidth = 5f
+            strokeWidth = 2f
         }
 
         for (i in 0 until points.size - 1) {
@@ -141,7 +180,6 @@ class IndoorFragment : Fragment() {
 
     private fun cleanImage() {
         points.clear()
-        bitmap = originalBitmap?.copy(Bitmap.Config.ARGB_8888, true)
         binding.imageView.setImageBitmap(bitmap)
     }
 
@@ -167,10 +205,55 @@ class IndoorFragment : Fragment() {
 
         Toast.makeText(requireContext(), "Сохранено в галлерею", Toast.LENGTH_SHORT).show()
     }
+    private val receiverSignal = object : BroadcastReceiver(){
+        override fun onReceive(context: Context?, q: Intent?) {
+            if (q?.action == ServiceBack.SIGNAL_MODLE_INTENT){
+                val signalModel = q.getSerializableExtra(ServiceBack.SIGNAL_MODLE_INTENT) as SignalModel
+
+                if (signalModel.rssi != Int.MAX_VALUE && signalModel.rssi >= -140 && signalModel.rssi <= -43){
+                    rssi = signalModel.rssi
+                }else{
+                    rssi = -0
+                }
+                if (signalModel.rsrp != Int.MAX_VALUE && signalModel.rsrp < 0){
+                    rsrp = signalModel.rsrp
+
+                }else{
+                    rsrp = -0
+
+                }
+                if (signalModel.rsrq != Int.MAX_VALUE){
+                    rsrq = signalModel.rsrq
+
+                }else{
+                    rsrq = -0
+                }
+                if (signalModel.snr != Int.MAX_VALUE){
+                    snr = signalModel.snr
+
+                }else{
+                    snr = -0
+                }
+                if (signalModel.cqi != Int.MAX_VALUE){
+                    cqi = signalModel.cqi
+                }else{
+                    cqi = -0
+                }
+            }
+        }
+    }
+
+    private fun registerLocReceiver(){
+        val signalFilter = IntentFilter(ServiceBack.SIGNAL_MODLE_INTENT)
+        LocalBroadcastManager.getInstance(activity as AppCompatActivity).registerReceiver(receiverSignal, signalFilter)
+
+
+    }
 
     companion object {
         @JvmStatic
         fun newInstance() = IndoorFragment()
+        private const val PICK_IMAGE_REQUEST = 1
+
     }
 }
-
