@@ -47,6 +47,8 @@ dependencies {
     implementation ("org.osmdroid:osmdroid-android:6.1.18")
     implementation ("com.github.MKergall:osmbonuspack:6.9.0")
 
+    implementation("com.github.MikeOrtiz:TouchImageView:1.4.1")
+
     implementation("com.google.android.material:material:1.11.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
 

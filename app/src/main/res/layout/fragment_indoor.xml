@@ -11,8 +11,7 @@
         android:id="@+id/imageView"
         android:layout_width="match_parent"
         android:layout_height="670dp"
-        android:layout_weight="1"
-        tools:srcCompat="@tools:sample/avatars" />
+        android:layout_weight="1" />
 
     <include
         android:id="@+id/butt_for_indoor"
