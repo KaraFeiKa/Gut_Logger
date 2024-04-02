@@ -3,6 +3,7 @@ package com.example.testkotlin.Info
 import java.io.Serializable
 
 data class SignalModel(
+    val net: String = "",
     val rssi: Int = 0,
     val rsrp: Int = 0,
     val rsrq: Int = 0,

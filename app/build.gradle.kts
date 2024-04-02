@@ -57,5 +57,4 @@ dependencies {
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
 
     implementation ("com.opencsv:opencsv:5.9")
-    implementation ("com.github.lau1944:Zoom-Drag-Rotate-ImageView:1.0.0")
 }

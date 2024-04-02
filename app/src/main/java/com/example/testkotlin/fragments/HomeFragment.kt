@@ -20,7 +20,9 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import com.example.testkotlin.Info.BWModel
 import com.example.testkotlin.Info.BsInfoModel
+import com.example.testkotlin.Info.CallInfoModel
 import com.example.testkotlin.Info.LocationModel
 import com.example.testkotlin.Info.ServiceBack
 import com.example.testkotlin.Info.SignalModel
@@ -68,6 +70,16 @@ class HomeFragment : Fragment() {
     var cqi: Int = 0
     var ta: Int = 0
     var BandPlus: Int = 0
+    var rnc: Int = 0
+    var psc: Int = 0
+    var ber: Int = 0
+    var bsic: Int = 0
+    var Arfcn: Int = 0
+    var Uarfcn: Int = 0
+    var EcNo: Int = 0
+    var bandwidnths = intArrayOf(0)
+    var convertedBands  = intArrayOf(0)
+
 
 
 
@@ -262,89 +274,237 @@ class HomeFragment : Fragment() {
         override fun onReceive(context: Context?, w: Intent?) {
             if (w?.action == ServiceBack.BS_MODLE_INTENT){
                 val bsInfoModel = w.getSerializableExtra(ServiceBack.BS_MODLE_INTENT) as BsInfoModel
-                calc()
-                Operator = bsInfoModel.operator
-                mcc = bsInfoModel.mcc
-                mnc = bsInfoModel.mnc
-                binding.bsInfo.resMCC.text = mcc
-                binding.bsInfo.resMnc.text = mnc
-                ci = bsInfoModel.ci
-                tac = bsInfoModel.tac
-                eNB = bsInfoModel.eNB
-                pci = bsInfoModel.pci
-                Earfcn =bsInfoModel.Earfcn
-                if (bsInfoModel.band != Unit){
-                    band = bsInfoModel.band
+
+                if (bsInfoModel.net == "4G"){
+                    calc()
+                    binding.bsInfo.resNetworkType.text = bsInfoModel.net
+                    Operator = bsInfoModel.operator
+                    mcc = bsInfoModel.mcc
+                    mnc = bsInfoModel.mnc
+                    binding.bsInfo.resMCC.text = mcc
+                    binding.bsInfo.resMnc.text = mnc
+                    ci = bsInfoModel.ci
+                    tac = bsInfoModel.tac
+                    eNB = bsInfoModel.eNB
+                    pci = bsInfoModel.pci
+                    Earfcn =bsInfoModel.Earfcn
+                    binding.bsInfo.textView8.text = "TAC:"
+                    binding.bsInfo.textView20.text = "EARFCN:"
+                    binding.bsInfo.textView12.text = "eNB:"
+                    binding.bsInfo.textView14.text = "PCI:"
+                    binding.bsInfo.TA.text = "TA:"
+                    if (bsInfoModel.band != Unit){
+                        band = bsInfoModel.band
+                    }
+                    else{
+                        band = BandPlus
+                    }
+                    binding.bsInfo.resOperator.text = Operator
+                    binding.bsInfo.resCellId.text = ci.toString()
+                    binding.bsInfo.resTacLac.text = tac.toString()
+                    binding.bsInfo.resENB.text = eNB.toString()
+                    binding.bsInfo.resPci.text = pci.toString()
+                    binding.bsInfo.resEARFCN.text = Earfcn.toString()
+                    binding.bsInfo.resBand.text = "$band ($NameR)"
+                    binding.bsInfo.textView22.text = "Полоса:"
+                    binding.bsInfo.resDl.text = "$FDL МГц"
+                    binding.bsInfo.resUl.text = "$FUL МГц"
                 }
-                else{
+
+                if (bsInfoModel.net == "3G"){
+                    calcUmts()
+                    binding.bsInfo.resNetworkType.text = bsInfoModel.net
+                    Operator = bsInfoModel.operator
+                    mcc = bsInfoModel.mcc
+                    mnc = bsInfoModel.mnc
+                    binding.bsInfo.resMCC.text = mcc
+                    binding.bsInfo.resMnc.text = mnc
+                    ci = bsInfoModel.ci
+                    tac = bsInfoModel.tac
+                    rnc = bsInfoModel.eNB
+                    psc = bsInfoModel.pci
+                    binding.bsInfo.resDl.text = "$FDL МГц"
+                    binding.bsInfo.resUl.text = "$FUL МГц"
                     band = BandPlus
+                    binding.bsInfo.resBand.text = "$band ($NameR)"
+                    binding.bsInfo.textView8.text = "LAC:"
+                    binding.bsInfo.textView20.text = "UARFCN:"
+                    Uarfcn =bsInfoModel.Earfcn
+                    binding.bsInfo.resEARFCN.text = Uarfcn.toString()
+                    binding.bsInfo.resOperator.text = Operator
+                    binding.bsInfo.resCellId.text = ci.toString()
+                    binding.bsInfo.resTacLac.text = tac.toString()
+                    binding.bsInfo.textView12.text = "Rnc:"
+                    binding.bsInfo.resENB.text = rnc.toString()
+                    binding.bsInfo.textView14.text = "Psc:"
+                    binding.bsInfo.resPci.text = psc.toString()
+                    binding.bsInfo.resBW.text = ""
+                    binding.bsInfo.textView22.text = ""
+
                 }
-                binding.bsInfo.resOperator.text = Operator
-                binding.bsInfo.resCellId.text = ci.toString()
-                binding.bsInfo.resTacLac.text = tac.toString()
-                binding.bsInfo.resENB.text = eNB.toString()
-                binding.bsInfo.resPci.text = pci.toString()
-                binding.bsInfo.resEARFCN.text = Earfcn.toString()
-                binding.bsInfo.resBand.text = "$band ($NameR)"
-                binding.bsInfo.resDl.text = "$FDL МГц"
-                binding.bsInfo.resUl.text = "$FUL МГц"
+
+                if (bsInfoModel.net == "2G"){
+                    calcArfcn()
+                    binding.bsInfo.resNetworkType.text = bsInfoModel.net
+                    Operator = bsInfoModel.operator
+                    mcc = bsInfoModel.mcc
+                    mnc = bsInfoModel.mnc
+                    binding.bsInfo.resMCC.text = mcc
+                    binding.bsInfo.resMnc.text = mnc
+                    ci = bsInfoModel.ci
+                    tac = bsInfoModel.tac
+                    bsic = bsInfoModel.pci
+                    binding.bsInfo.textView8.text = "LAC"
+                    binding.bsInfo.textView20.text = "ARFCN:"
+                    Arfcn =bsInfoModel.Earfcn
+                    binding.bsInfo.resDl.text = "$FDL МГц"
+                    binding.bsInfo.resUl.text = "$FUL МГц"
+                    band = BandPlus
+                    binding.bsInfo.resBand.text = "$band ($NameR)"
+                    binding.bsInfo.resEARFCN.text = Arfcn.toString()
+                    binding.bsInfo.resOperator.text = Operator
+                    binding.bsInfo.resCellId.text = ci.toString()
+                    binding.bsInfo.resTacLac.text = tac.toString()
+                    binding.bsInfo.textView12.text = "bsic:"
+                    binding.bsInfo.resENB.text = bsic.toString()
+                    binding.bsInfo.textView14.text = "TA:"
+                    binding.bsInfo.resBW.text = ""
+                    binding.bsInfo.textView22.text = ""
+                    binding.bsInfo.TA.text = ""
+                    binding.bsInfo.resTA.text=""
+                    binding.bsInfo.resDl.text = "$FDL МГц"
+                    binding.bsInfo.resUl.text = "$FUL МГц"
+                }
 
             }
         }
     }
 
-    private val receiverSignal = object : BroadcastReceiver(){
+    private val receiverSignal = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, q: Intent?) {
             if (q?.action == ServiceBack.SIGNAL_MODLE_INTENT){
                 val signalModel = q.getSerializableExtra(ServiceBack.SIGNAL_MODLE_INTENT) as SignalModel
 
-                if (signalModel.rssi != Int.MAX_VALUE && signalModel.rssi >= -140 && signalModel.rssi <= -43){
+                if (signalModel.net == "4G"){
+
+                    binding.signalInfo.textView27.text = "CQI:"
+                    binding.signalInfo.textView3.text = "RSRP:"
+                    binding.signalInfo.textView5.text = "RSRQ:"
+
+
+                    if (signalModel.rssi != Int.MAX_VALUE && signalModel.rssi >= -140 && signalModel.rssi <= -43){
+                        rssi = signalModel.rssi
+                        binding.signalInfo.resRssi.text = rssi.toString() + " дБм"
+                    }else{
+                        rssi = -0
+                        binding.signalInfo.resRssi.text = "N/a"
+                    }
+                    if (signalModel.rsrp != Int.MAX_VALUE && signalModel.rsrp < 0){
+                        rsrp = signalModel.rsrp
+                        binding.signalInfo.resRsrp.text = "$rsrp дБм"
+                    }else{
+                        rsrp = -0
+                        binding.signalInfo.resRsrp.text = "N/a"
+                    }
+                    if (signalModel.rsrq != Int.MAX_VALUE){
+                        rsrq = signalModel.rsrq
+                        binding.signalInfo.resRsrq.text = "$rsrq дБ"
+                    }else{
+                        rsrq = -0
+                        binding.signalInfo.resRsrq.text = "N/a"
+                    }
+                    if (signalModel.snr != Int.MAX_VALUE){
+                        snr = signalModel.snr
+                        binding.signalInfo.resSnr.text = "$snr дБ"
+                    }else{
+                        snr = -0
+                        binding.signalInfo.resSnr.text = "N/a"
+                    }
+                    if (signalModel.cqi != Int.MAX_VALUE){
+                        cqi = signalModel.cqi
+                        binding.signalInfo.resCqi.text = cqi.toString()
+                    }else{
+                        cqi = -0
+                        binding.signalInfo.resCqi.text = "N/a"
+                    }
+                    if (signalModel.ta != Int.MAX_VALUE){
+                        ta = signalModel.ta
+                        binding.bsInfo.resTA.text = ta.toString()
+                    }else{
+                        ta = -0
+                        binding.bsInfo.resTA.text = "N/a"
+                    }
+                }
+                if (signalModel.net == "3G"){
+                    binding.bsInfo.resTA.text = ""
+                    binding.bsInfo.TA.text=""
                     rssi = signalModel.rssi
-                    binding.signalInfo.resRssi.text = rssi.toString() + " дБм"
-                }else{
-                    rssi = -0
-                    binding.signalInfo.resRssi.text = "N/a"
-                }
-                if (signalModel.rsrp != Int.MAX_VALUE && signalModel.rsrp < 0){
+                    binding.signalInfo.resRssi.text = "${rssi} дБм"
+                    binding.signalInfo.textView3.text = "RSCP:"
                     rsrp = signalModel.rsrp
-                    binding.signalInfo.resRsrp.text = "$rsrp дБм"
-                }else{
-                    rsrp = -0
-                    binding.signalInfo.resRsrp.text = "N/a"
+                    binding.signalInfo.resRsrp.text = "${rsrp} дБм"
+                    binding.signalInfo.textView5.text = "Ec/N0:"
+                    EcNo = signalModel.snr
+                    binding.signalInfo.resRsrq.text = "${EcNo} дБ"
+                    binding.signalInfo.textView27.text = ""
+                    binding.signalInfo.resCqi.text = ""
+
                 }
-                if (signalModel.rsrq != Int.MAX_VALUE){
-                    rsrq = signalModel.rsrq
-                    binding.signalInfo.resRsrq.text = "$rsrq дБ"
-                }else{
-                    rsrq = -0
-                    binding.signalInfo.resRsrq.text = "N/a"
+                if (signalModel.net == "2G"){
+                    Log.d("GSM", signalModel.toString())
+                    rssi = signalModel.rssi
+                    binding.signalInfo.resRssi.text = "${rssi} дБм"
+                    binding.signalInfo.textView3.text = ""
+
+                    if (signalModel.snr != Int.MAX_VALUE && signalModel.snr != 99){
+                        ber = signalModel.snr
+                        binding.signalInfo.resRsrq.text = "${ber} дБм"
+                    }else{
+                        ber = -0
+                        binding.signalInfo.resRsrq.text = "N/a"
+                    }
+                    binding.signalInfo.textView5.text = "BER:"
+                    binding.signalInfo.textView27.text = ""
                 }
-                if (signalModel.snr != Int.MAX_VALUE){
-                    snr = signalModel.snr
-                    binding.signalInfo.resSnr.text = "$snr дБ"
-                }else{
-                    snr = -0
-                    binding.signalInfo.resSnr.text = "N/a"
-                }
-                if (signalModel.cqi != Int.MAX_VALUE){
-                    cqi = signalModel.cqi
-                    binding.signalInfo.resCqi.text = cqi.toString()
-                }else{
-                    cqi = -0
-                    binding.signalInfo.resCqi.text = "N/a"
-                }
-                if (signalModel.ta != Int.MAX_VALUE){
-                    ta = signalModel.ta
-                    binding.bsInfo.resTA.text = ta.toString()
-                }else{
-                    ta = -0
-                    binding.bsInfo.resTA.text = "N/a"
+
+
+
+            }
+        }
+    }
+
+    private val receiverBW = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, bw: Intent?) {
+            if (bw?.action == ServiceBack.BW_MODLE_INTENT) {
+                val bwModel = bw.getSerializableExtra(ServiceBack.BW_MODLE_INTENT) as BWModel
+                Log.d ("BW1", bwModel.BW.toString())
+
+                bandwidnths = bwModel.BW.cellBandwidths
+                if (bandwidnths.isNotEmpty()) {
+                    convertedBands = IntArray(bandwidnths.size)
+                    for (i in 0 until bandwidnths.size) {
+                        convertedBands[i] = bandwidnths[i] / 1000
+                        Log.d ("BW2", convertedBands[i].toString())
+                    }
+                    if (convertedBands.size >1){
+                        binding.bsInfo.resBW.text = "[${convertedBands.joinToString("/")}] CA, МГц"
+                    }else{
+                        binding.bsInfo.resBW.text = convertedBands.joinToString("/") + " МГц"
+                    }
+
                 }
             }
         }
     }
 
-
+    private val receiverCall = object : BroadcastReceiver(){
+        override fun onReceive(context: Context?, c: Intent?) {
+            if (c?.action == ServiceBack.Call_MODLE_INTENT){
+                val callInfoModel = c.getSerializableExtra(ServiceBack.Call_MODLE_INTENT) as CallInfoModel
+                binding.bsInfo.resRRC.text = callInfoModel.State
+            }
+        }
+    }
 
 
     private fun registerLocReceiver(){
@@ -352,6 +512,10 @@ class HomeFragment : Fragment() {
         val signalFilter = IntentFilter(ServiceBack.SIGNAL_MODLE_INTENT)
         val bsinfoFilter = IntentFilter(ServiceBack.BS_MODLE_INTENT)
         val speedFilter = IntentFilter(ServiceBack.Speed_MODLE_INTENT)
+        val BWfilter = IntentFilter(ServiceBack.BW_MODLE_INTENT)
+        val Callfilter = IntentFilter(ServiceBack.Call_MODLE_INTENT)
+        LocalBroadcastManager.getInstance(activity as AppCompatActivity).registerReceiver(receiverCall,Callfilter)
+        LocalBroadcastManager.getInstance(activity as AppCompatActivity).registerReceiver(receiverBW,BWfilter)
         LocalBroadcastManager.getInstance(activity as AppCompatActivity).registerReceiver(receiverSpeed,speedFilter)
         LocalBroadcastManager.getInstance(activity as AppCompatActivity).registerReceiver(receiverBS,bsinfoFilter)
         LocalBroadcastManager.getInstance(activity as AppCompatActivity).registerReceiver(receiverSignal, signalFilter)
@@ -361,9 +525,9 @@ class HomeFragment : Fragment() {
     fun writeLTEInfo() {
         writer?.let { writer ->
             var bandwidth = ""
-//            convertedBands?.let {
-//                bandwidth = it.joinToString("/")
-//            }
+           convertedBands?.let {
+                bandwidth = it.joinToString("/")
+            }
             val str: Array<String> = arrayOf(
                 lat.toString(),
                 lon.toString(),
@@ -377,7 +541,7 @@ class HomeFragment : Fragment() {
                 eNB.toString(),
                 band.toString(),
                 bandwidth,
-                    Earfcn.toString(),
+                Earfcn.toString(),
                 "",
                 "",
                 FUL.toString(),
@@ -833,6 +997,131 @@ class HomeFragment : Fragment() {
 
 
     }
+
+    private fun calcUmts() {
+        var NDL: Double
+        var NOffs_DL: Double
+        var NUL: Double
+        var NOffs_UL: Double
+        when {
+            Uarfcn in 10562..10838 -> {
+                NameR = "2100"
+                Mode = "FDD"
+                NDL = Uarfcn.toDouble()
+                NOffs_DL = 0.0
+                BandPlus = 1
+                FDL = (NOffs_DL + NDL / 5).toFloat()
+                NUL = (Uarfcn - 950).toDouble()
+                NOffs_UL = 0.0
+                FUL= (NOffs_UL + NUL / 5).toFloat()
+            }
+            Uarfcn in 9662..9938 -> {
+                NameR = "1900 PCS"
+                Mode = "FDD"
+                NDL = Uarfcn.toDouble()
+                NOffs_DL = 0.0
+                BandPlus = 2
+                FDL = (NOffs_DL + NDL / 5).toFloat()
+                NUL = (Uarfcn - 400).toDouble()
+                NOffs_UL = 0.0
+                FUL = (NOffs_UL + NUL / 5).toFloat()
+            }
+            Uarfcn in 1162..1513 -> {
+                NameR = "1800 DCS"
+                Mode = "FDD"
+                NDL = Uarfcn.toDouble()
+                NOffs_DL = 1575.0
+                BandPlus = 3
+                FDL = (NOffs_DL + NDL / 5).toFloat()
+                NUL = (Uarfcn - 225).toDouble()
+                NOffs_UL = 1525.0
+                FUL = (NOffs_UL + NUL / 5).toFloat()
+            }
+            Uarfcn in 1537..1738 -> {
+                NameR = "AWS-1"
+                Mode = "FDD"
+                NDL = Uarfcn.toDouble()
+                NOffs_DL = 1805.0
+                BandPlus = 4
+                FDL = (NOffs_DL + NDL / 5).toFloat()
+                NUL = (Uarfcn - 225).toDouble()
+                NOffs_UL = 1450.0
+                FUL = (NOffs_UL + NUL / 5).toFloat()
+            }
+            Uarfcn in 4357..4458 -> {
+                NameR = "850"
+                Mode = "FDD"
+                NDL = Uarfcn.toDouble()
+                NOffs_DL = 0.0
+                BandPlus = 5
+                FDL = (NOffs_DL + NDL / 5).toFloat()
+                NUL = (Uarfcn - 225).toDouble()
+                NOffs_UL = 0.0
+                FUL = (NOffs_UL + NUL / 5).toFloat()
+            }
+            Uarfcn in 2237..2563 -> {
+                NameR = "2600"
+                Mode = "FDD"
+                NDL = Uarfcn.toDouble()
+                NOffs_DL = 2175.0
+                BandPlus = 7
+                FDL = (NOffs_DL + NDL / 5).toFloat()
+                NUL = (Uarfcn - 225).toDouble()
+                NOffs_UL = 2100.0
+                FUL = (NOffs_UL + NUL / 5).toFloat()
+            }
+            Uarfcn in 3112..3388 -> {
+                NameR = "AWS-1+"
+                Mode = "FDD"
+                NDL = Uarfcn.toDouble()
+                NOffs_DL = 1490.0
+                BandPlus = 10
+                FDL = (NOffs_DL + NDL / 5).toFloat()
+                NUL = (Uarfcn - 225).toDouble()
+                NOffs_UL = 1135.0
+                FUL = (NOffs_UL + NUL / 5).toFloat()
+            }
+            Uarfcn in 3712..3787 -> {
+                NameR = "1500 Lower"
+                Mode = "FDD"
+                NDL = Uarfcn.toDouble()
+                NOffs_DL = 736.0
+                BandPlus= 11
+                FDL = (NOffs_DL + NDL / 5).toFloat()
+                NUL = (Uarfcn - 225).toDouble()
+                NOffs_UL = 733.0
+                FUL = (NOffs_UL + NUL / 5).toFloat()
+            }
+            Uarfcn in 3842..3903 -> {
+                NameR = "700 a"
+                Mode = "FDD"
+                NDL = Uarfcn.toDouble()
+                NOffs_DL = -37.0
+                BandPlus = 12
+                FDL = (NOffs_DL + NDL / 5).toFloat()
+                NUL = (Uarfcn - 225).toDouble()
+                NOffs_UL = -22.0
+                FUL = (NOffs_UL + NUL / 5).toFloat()
+            }
+        }
+    }
+
+    private fun calcArfcn() {
+        when {
+            Arfcn in 0..124 -> {
+                NameR = "E-GSM"
+                FUL = (890 + 0.2 * Arfcn).toFloat()
+                FDL = FUL + 45
+            }
+            Arfcn in 512..885 -> {
+                NameR = "DCS 1800"
+                FUL = (1710.2 + 0.2 * (Arfcn - 512)).toFloat()
+                FDL = FUL + 95
+            }
+        }
+    }
+
+
 
     companion object {
         @JvmStatic

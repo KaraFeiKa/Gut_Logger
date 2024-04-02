@@ -158,7 +158,7 @@ class IndoorFragment : Fragment() {
 //    (rsrp <= -100)
     private fun drawPoints(canvas: Canvas) {
         val paint = Paint().apply {
-
+            color = Color.RED
             style = Paint.Style.FILL
         }
         for (point in points) {

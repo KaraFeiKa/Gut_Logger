@@ -3,6 +3,7 @@ package com.example.testkotlin.Info
 import java.io.Serializable
 
 data class BsInfoModel(
+    val net: String = "",
     val mcc: String = "",
     val mnc: String = "",
     val ci: Int = 0,
