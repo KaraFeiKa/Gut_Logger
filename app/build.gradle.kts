@@ -1,7 +1,10 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id ("org.jetbrains.kotlin.plugin.serialization")
 }
+
+val ktorVersion: String by project
 
 android {
     namespace = "com.example.testkotlin"
@@ -57,4 +60,13 @@ dependencies {
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
 
     implementation ("com.opencsv:opencsv:5.9")
+
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
+    testImplementation("org.jetbrains.kotlin:kotlin-test")
+    implementation("io.ktor:ktor-client-core:$ktorVersion")
+    implementation("io.ktor:ktor-client-logging:$ktorVersion")
+    implementation("io.ktor:ktor-client-auth:$ktorVersion")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
+    implementation("io.ktor:ktor-client-cio:$ktorVersion")
+    implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
 }

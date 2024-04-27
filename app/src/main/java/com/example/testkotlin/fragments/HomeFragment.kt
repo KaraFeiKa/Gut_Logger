@@ -117,7 +117,9 @@ class HomeFragment : Fragment() {
 
         pLauncher = registerForActivityResult(
             ActivityResultContracts.RequestMultiplePermissions()){
-            if(it[Manifest.permission.ACCESS_FINE_LOCATION]  == true && it[Manifest.permission.READ_PHONE_STATE]  == true && it[Manifest.permission.POST_NOTIFICATIONS]  == true && it[Manifest.permission.ACCESS_COARSE_LOCATION]  == true)  {
+            if(it[Manifest.permission.ACCESS_FINE_LOCATION]  == true && it[Manifest.permission.READ_PHONE_STATE]  == true
+                && it[Manifest.permission.POST_NOTIFICATIONS]  == true && it[Manifest.permission.ACCESS_COARSE_LOCATION]  == true
+                )  {
 
             } else {
                 Toast.makeText(activity, "Вы не дали разрешения!", Toast.LENGTH_LONG).show()
@@ -141,7 +143,7 @@ class HomeFragment : Fragment() {
                     Manifest.permission.ACCESS_FINE_LOCATION,
                     Manifest.permission.ACCESS_COARSE_LOCATION,
                     Manifest.permission.READ_PHONE_STATE,
-                    Manifest.permission.POST_NOTIFICATIONS,
+                    Manifest.permission.POST_NOTIFICATIONS
                 )
             )
         }
@@ -232,6 +234,7 @@ class HomeFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         checkPermission()
+        Log.d("life", "Resume")
     }
 
     override fun onDestroy() {

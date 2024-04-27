@@ -7,6 +7,7 @@ import android.graphics.PointF
 import android.location.LocationManager
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,8 +16,10 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import com.example.testkotlin.R
 import com.example.testkotlin.databinding.FragmentMapBinding
+import com.example.testkotlin.fragmentsimport.SignalStrengthServer
 import com.example.testkotlin.utils.checkPermission
 import com.yandex.mapkit.Animation
 import com.yandex.mapkit.MapKitFactory
@@ -34,6 +37,7 @@ import com.yandex.mapkit.map.CameraUpdateReason
 import com.yandex.mapkit.map.Map
 import com.yandex.mapkit.user_location.UserLocationObjectListener
 import com.yandex.mapkit.user_location.UserLocationView
+import kotlinx.coroutines.launch
 
 class MapFragment : Fragment(), UserLocationObjectListener, CameraListener {
     private lateinit var pLauncher: ActivityResultLauncher<Array<String>>
@@ -47,6 +51,9 @@ class MapFragment : Fragment(), UserLocationObjectListener, CameraListener {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+        lifecycleScope.launch {
+            SignalStrengthServer()
+        }
 
 
 //        settOsm()
@@ -64,6 +71,28 @@ class MapFragment : Fragment(), UserLocationObjectListener, CameraListener {
         super.onViewCreated(view, savedInstanceState)
         registerPermissions()
 
+
+    }
+
+    suspend fun SignalStrengthServer() {
+        val baseURL = "http://ss.sut.dchudinov.ru/api/v1"
+        val login = "roma"
+        val password = "romaromaroman"
+        val server =
+            com.example.testkotlin.fragmentsimport.SignalStrengthServer(baseURL, login, password)
+//    http://ss.sut.dchudinov.ru/api/v1/cells?lat=59.903119&long=30.488665&radius=0.001
+        val lat: Double = 59.903119
+        val long: Double = 30.488665
+        val radius: Double = 0.001
+        try {
+            val cells = server.getCells(lat, long, radius)
+            Log.d("Cells", cells.toString())
+        }catch (ex: Exception) {
+            Log.d("Cells", ex.toString())
+        }
+
+//    lat=59.90358805&long=30.48996893&radius=0.02&
+////        mnc=2&network=4G&dateStart=2023-08-31&dateEnd=2024-04-23
     }
 
     private fun setYandex(){
@@ -112,6 +141,7 @@ class MapFragment : Fragment(), UserLocationObjectListener, CameraListener {
     override fun onCameraPositionChanged(
         map: Map, cPos: CameraPosition, cUpd: CameraUpdateReason, finish: Boolean
     ) {
+
         if (finish) {
             if (followUserLocation) {
                 setAnchor()
@@ -251,6 +281,8 @@ class MapFragment : Fragment(), UserLocationObjectListener, CameraListener {
         MapKitFactory.getInstance().onStop()
         super.onStop()
     }
+
+
 
 
     companion object {
