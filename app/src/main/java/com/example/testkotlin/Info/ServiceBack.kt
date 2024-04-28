@@ -48,7 +48,7 @@ class ServiceBack: Service() {
     val myTelephonyCallbackNeiborhood = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
         MyTelephonyCallbackNeiborhood(this)
     } else {
-        MyPhoneStateListenerNeiborhood(this)
+
     }
     val myTelephonyCallbackCall = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
         MyTelephonyCallbackCall(this)
@@ -223,6 +223,7 @@ class MyPhoneStateListenerState(val activity: ServiceBack) : PhoneStateListener(
             cellInfo.forEach { cell ->
                 if (cell is CellInfoLte){
                     if (cell.isRegistered){
+                        isNetworksType = "4G"
                         Log.d("Signal1", cell.cellSignalStrength.toString())
                         val signalModel=SignalModel(
                             "4G",
@@ -264,6 +265,7 @@ class MyPhoneStateListenerState(val activity: ServiceBack) : PhoneStateListener(
                 }
                 if (cell is CellInfoWcdma){
                     if (cell.isRegistered){
+                        isNetworksType = "3G"
                         Log.d("Signal1", cell.cellSignalStrength.toString())
                         Log.d("Signal1", cell.cellIdentity.toString())
                         val CellSignalStrengthArr: List<String> =cell.cellSignalStrength.toString().split(" ")
@@ -307,7 +309,7 @@ class MyPhoneStateListenerState(val activity: ServiceBack) : PhoneStateListener(
                 }
                 if (cell is CellInfoGsm){
                     if (cell.isRegistered){
-
+                        isNetworksType = "2G"
                         val signalModel=SignalModel(
                             "2G",
                             cell.cellSignalStrength.rssi,
@@ -365,8 +367,7 @@ class MyPhoneStateListenerState(val activity: ServiceBack) : PhoneStateListener(
             cellInfo.forEach { cell ->
                 if (cell is CellInfoLte) {
                     if (!cell.isRegistered) {
-                        isNetworksType = "4G"
-                        Log.d("Check Neib Servic", cell.toString())
+
                         var bands = cell.cellIdentity.bands
 //                        TODO: fix it
                         var band = if (bands.isNotEmpty()){
@@ -383,13 +384,11 @@ class MyPhoneStateListenerState(val activity: ServiceBack) : PhoneStateListener(
                             cell.cellSignalStrength.rsrq,
                             cell.cellSignalStrength.timingAdvance
                         )
-//                        activity.sendInfoNeiborhood(infoNeiborhood)
                         neighbours.add(infoNeiborhood)
                     }
                 }
                 if (cell is CellInfoWcdma){
                     if (!cell.isRegistered) {
-                        isNetworksType = "3G"
                         val CellSignalStrengthArr: List<String> =cell.cellSignalStrength.toString().split(" ")
                         var ss = 0
                         if (CellSignalStrengthArr.size > 1) {
@@ -414,13 +413,11 @@ class MyPhoneStateListenerState(val activity: ServiceBack) : PhoneStateListener(
                             ss
 
                         )
-//                        activity.sendInfoNeiborhood(infoNeiborhood)
                         neighbours.add(infoNeiborhood)
                     }
                 }
                 if (cell is CellInfoGsm) {
                     if (!cell.isRegistered) {
-                        isNetworksType = "2G"
                         val infoNeiborhood = InfoNeiborhood(
                             "2G",
                             0,
@@ -439,7 +436,6 @@ class MyPhoneStateListenerState(val activity: ServiceBack) : PhoneStateListener(
                             cell.cellIdentity.bsic,
                             cell.cellSignalStrength.rssi
                         )
-//                        activity.sendInfoNeiborhood(infoNeiborhood)
                         neighbours.add(infoNeiborhood)
                     }
                 }
@@ -448,103 +444,7 @@ class MyPhoneStateListenerState(val activity: ServiceBack) : PhoneStateListener(
         }
     }
 
-    class MyPhoneStateListenerNeiborhood(val activity: ServiceBack): PhoneStateListener(){
-        @RequiresApi(Build.VERSION_CODES.R)
-        override fun onCellInfoChanged(cellInfo: MutableList<CellInfo>?) {
-            if (androidx.core.app.ActivityCompat.checkSelfPermission(
-                    activity,
-                    android.Manifest.permission.ACCESS_FINE_LOCATION
-                ) != android.content.pm.PackageManager.PERMISSION_GRANTED || androidx.core.app.ActivityCompat.checkSelfPermission(
-                    activity,
-                    android.Manifest.permission.READ_PHONE_STATE
-                ) != android.content.pm.PackageManager.PERMISSION_GRANTED
-            ) {
-                return
-            }
-            cellInfo?.forEach { cell ->
 
-
-                if (cell is CellInfoLte) {
-                    if (!cell.isRegistered) {
-                        Log.d("Check Neib Servic", cell.toString())
-                        var bands = cell.cellIdentity.bands
-                        var band = if (bands.isNotEmpty()){
-                            bands[0]
-                        } else { }
-
-                        val infoNeiborhood=InfoNeiborhood(
-                            "4G",
-                            cell.cellIdentity.pci,
-                            cell.cellIdentity.earfcn,
-                            band,
-                            0,
-                            cell.cellSignalStrength.rssi,
-                            cell.cellSignalStrength.rsrp,
-                            cell.cellSignalStrength.rsrq,
-                            cell.cellSignalStrength.timingAdvance
-                        )
-                        activity.sendInfoNeiborhood(infoNeiborhood)
-                    }
-                }
-                if (cell is CellInfoWcdma){
-                    if (!cell.isRegistered) {
-
-                        val CellSignalStrengthArr: List<String> =cell.cellSignalStrength.toString().split(" ")
-                        var ss = 0
-                        if (CellSignalStrengthArr.size > 1) {
-                            val elem = CellSignalStrengthArr[1].split("=".toRegex())
-                                .dropLastWhile { it.isEmpty() }
-                                .toTypedArray()
-                            if (elem[0].contains("ss")) {
-                                ss = elem[1].toInt()
-                            }
-                        }
-                        val infoNeiborhood=InfoNeiborhood(
-                            "3G",
-                            0,
-                            0,
-                            0,
-                            0,
-                            0,
-                            0,
-                            0,
-                            cell.cellIdentity.psc,
-                            cell.cellIdentity.uarfcn,
-                            ss
-
-                        )
-                        activity.sendInfoNeiborhood(infoNeiborhood)
-                    }
-                }
-                if (cell is CellInfoGsm){
-                    if (!cell.isRegistered) {
-                        val infoNeiborhood=InfoNeiborhood(
-                            "2G",
-                            0,
-                            0,
-                            0,
-                            0,
-                            0,
-                            0,
-                            0,
-                            0,
-                            0,
-                            0,
-                            cell.cellIdentity.lac,
-                            cell.cellIdentity.cid,
-                            cell.cellIdentity.arfcn,
-                            cell.cellIdentity.bsic,
-//                            cell.cellSignalStrength.rssi
-                        )
-                        activity.sendInfoNeiborhood(infoNeiborhood)
-                    }
-                }
-
-
-            }
-            super.onCellInfoChanged(cellInfo)
-        }
-    }
 
 
     private fun startNotification() {
@@ -577,7 +477,7 @@ class MyPhoneStateListenerState(val activity: ServiceBack) : PhoneStateListener(
     private fun initLocation(){
         locProvider = LocationServices.getFusedLocationProviderClient(baseContext)
         locRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY,1000)
-            .setMinUpdateDistanceMeters(5F)
+            .setMinUpdateDistanceMeters(7F)
             .build()
 
     }
@@ -633,11 +533,7 @@ private fun BwSandData (bwModel: BWModel){
         LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(c)
    }
 
-    private fun sendInfoNeiborhood (infoNeiborhood: InfoNeiborhood){
-        val infoN = Intent(INFO_NEIBORHOOD)
-        infoN.putExtra(INFO_NEIBORHOOD, infoNeiborhood)
-        LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(infoN)
-    }
+
 
     private fun sendInfoNeighbours (infoNeighbours: ArrayList<InfoNeiborhood>){
         val neighbours = Intent(INFO_NEIGHBOURS)
@@ -669,7 +565,6 @@ private fun BwSandData (bwModel: BWModel){
         super.onDestroy()
         Log.d("life service", "Destroy")
                tm.unregisterTelephonyCallback(myTelephonyCallbackSignalStrength as TelephonyCallback)
-//                tm.listen(myTelephonyCallbackSignalStrength as PhoneStateListener?, PhoneStateListener.LISTEN_NONE)
                 tm.unregisterTelephonyCallback(myTelephonyCallback as TelephonyCallback)
         mTrafficSpeedMeasurer.stopMeasuring()
         locProvider.removeLocationUpdates(locCallBack)
@@ -696,8 +591,6 @@ private fun BwSandData (bwModel: BWModel){
         const val BS_MODLE_INTENT = "BS_intent"
         const val Call_MODLE_INTENT = "Call_intent"
         const val BW_MODLE_INTENT = "BW_intent"
-        const val INFO_NEIBORHOOD = "Neibor_intent"
-
         const val INFO_NEIGHBOURS = "INFO_NEIGHBOURS"
         var WriterIsWorking = false
         var isNetworksType = ""

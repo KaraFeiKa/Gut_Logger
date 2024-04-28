@@ -176,8 +176,8 @@ class MapFragment : Fragment(), UserLocationObjectListener, CameraListener {
     override fun onObjectAdded(userLocationView: UserLocationView) {
         setAnchor()
 
-        userLocationView.pin.setIcon(fromResource(context, R.drawable.free_icon_phone_9997630))
-        userLocationView.arrow.setIcon(fromResource(context, R.drawable.free_icon_phone_9997630))
+        userLocationView.pin.setIcon(fromResource(context, R.mipmap.man_phone_foreground))
+        userLocationView.arrow.setIcon(fromResource(context, R.mipmap.man_phone_foreground))
     }
 
     override fun onObjectUpdated(p0: UserLocationView, p1: ObjectEvent) {}

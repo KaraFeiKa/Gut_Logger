@@ -44,6 +44,7 @@ dependencies {
     implementation("androidx.core:core-ktx:1.10.1")
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation ("com.yandex.android:maps.mobile:4.4.0-lite")
+    implementation("androidx.fragment:fragment-ktx:1.6.2")
 
     implementation ("com.google.android.gms:play-services-location:21.2.0")
 

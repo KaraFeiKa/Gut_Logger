@@ -15,29 +15,17 @@ import android.widget.TableRow
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.example.testkotlin.Info.InfoNeiborhood
 import com.example.testkotlin.Info.ServiceBack
+import com.example.testkotlin.MainViewModel
 import com.example.testkotlin.databinding.FragmentHeighborsBinding
 
 
 class NeighborsFragment : Fragment() {
     private lateinit var binding: FragmentHeighborsBinding
-    var pci: Int = 0
-    var Earfcn: Int = 0
-    var Bands: Any = intArrayOf()
-    var rssi: Int = 0
-    var rsrp: Int = 0
-    var rsrq: Int = 0
-    var ta: Int = 0
-    var psc: Int = 0
-    var Uarfcn: Int = 0
-    var ss:Int = 0
-    var lac: Int = 0
-    var ci: Int = 0
-    var Arfcn: Int = 0
-    var bsic: Int = 0
-    var rssi2g: Int = 0
+    private val model : MainViewModel by activityViewModels()
 
 
 
@@ -60,6 +48,12 @@ class NeighborsFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         creatHead()
+    }
+
+    private fun NeighborsUpdate() =with(binding){
+        model.neighboursUpdate.observe(viewLifecycleOwner){
+
+        }
     }
 
     private fun creatHead(){
@@ -125,7 +119,7 @@ class NeighborsFragment : Fragment() {
                 )
 
                 val textViewList = mutableListOf<TextView>()
-                val labels = listOf("LAC", "CID", "ARFCN", "BSIC", "RSSI")
+                val labels = listOf("LAC", "Cell ID", "ARFCN", "BSIC", "RSSI")
 
                 labels.forEachIndexed { index, label ->
                     val textView = TextView(ctx)
@@ -144,92 +138,14 @@ class NeighborsFragment : Fragment() {
     }
 
     private fun createTable(neighbours: ArrayList<InfoNeiborhood>) {
-        Log.d("create table neighbours", neighbours.toString())
-//        binding.tableLayout.removeAllViews()
-
         var childCount = binding.tableLayout.childCount;
 
-        // Remove all rows except the first one
         if (childCount > 1) {
             binding.tableLayout.removeViews(1, childCount - 1);
         }
 
         var currRow = 1
 
-//        if (Type == "4G"){
-//            context?.let { ctx ->
-//                val tableRowLte = TableRow(ctx)
-//                tableRowLte.layoutParams = TableLayout.LayoutParams(
-//                    TableLayout.LayoutParams.MATCH_PARENT,
-//                    TableLayout.LayoutParams.WRAP_CONTENT
-//                )
-//
-//                val textViewList = mutableListOf<TextView>()
-//                val labels = listOf("PCI", "Earfcn", "Band", "RSSI", "RSRP", "RSRQ", "Ta")
-//
-//                labels.forEachIndexed { index, label ->
-//                    val textView = TextView(ctx)
-//                    textView.textSize = 20f
-//                    textView.text = "$label   "
-//                    tableRowLte.addView(textView, index)
-//                    textViewList.add(textView)
-//                }
-//
-//                binding.tableLayout.addView(tableRowLte, currRow)
-//                currRow++
-//                networkHeaders = Networks.LTE
-//            }
-//        }
-//        if (Type =="3G"){
-//            context?.let { ctx ->
-//                val tableRowUMTS = TableRow(ctx)
-//                tableRowUMTS.layoutParams = TableLayout.LayoutParams(
-//                    TableLayout.LayoutParams.MATCH_PARENT,
-//                    TableLayout.LayoutParams.WRAP_CONTENT
-//                )
-//
-//                val textViewList = mutableListOf<TextView>()
-//                val labels = listOf("PSC", "Uarfcn", "dBm")
-//
-//                labels.forEachIndexed { index, label ->
-//                    val textView = TextView(ctx)
-//                    textView.textSize = 20f
-//                    textView.text = "$label   "
-//                    tableRowUMTS.addView(textView, index)
-//                    textViewList.add(textView)
-//                }
-//
-//                binding.tableLayout.addView(tableRowUMTS, currRow)
-//                currRow++
-//                networkHeaders = Networks.UMTS
-//            }
-//        }
-//
-//        if (Type == "2G"){
-//            context?.let { ctx ->
-//                val tableRow = TableRow(ctx)
-//                tableRow.layoutParams = TableLayout.LayoutParams(
-//                    TableLayout.LayoutParams.MATCH_PARENT,
-//                    TableLayout.LayoutParams.WRAP_CONTENT
-//                )
-//
-//                val textViewList = mutableListOf<TextView>()
-//                val labels = listOf("LAC", "CID", "ARFCN", "BSIC", "RSSI")
-//
-//                labels.forEachIndexed { index, label ->
-//                    val textView = TextView(ctx)
-//                    textView.textSize = 20f
-//                    textView.text = "$label   "
-//                    tableRow.addView(textView, index)
-//                    textViewList.add(textView)
-//                }
-//
-//                binding.tableLayout.addView(tableRow, currRow)
-//                currRow++
-//                networkHeaders = Networks.GSM
-//            }
-//
-//        }
 
         for (neighbour in neighbours) {
             if (neighbour.Type == "4G" && networkHeaders == Networks.LTE) {
@@ -306,7 +222,104 @@ class NeighborsFragment : Fragment() {
                 }
 
             }
+
+            if (neighbour.Type == "3G" && networkHeaders == Networks.UMTS) {
+                getContext()?.let { ctx ->
+                    val tableRowValues = TableRow(ctx)
+                    tableRowValues.layoutParams = TableLayout.LayoutParams(
+                        TableLayout.LayoutParams.MATCH_PARENT,
+                        TableLayout.LayoutParams.WRAP_CONTENT
+                    )
+
+                    val textViewList = mutableListOf<TextView>()
+
+                    val PSC = TextView(ctx).apply {
+                        textSize = 20f
+                        text =  neighbour.psc.toString()
+                    }
+                    tableRowValues.addView(PSC, 0)
+                    textViewList.add(PSC)
+
+                    val UARFCN = TextView(ctx).apply {
+                        textSize = 20f
+                        text = neighbour.Uarfcn.toString()
+                    }
+                    tableRowValues.addView(UARFCN, 1)
+                    textViewList.add(UARFCN)
+
+
+                    val SS = TextView(ctx).apply {
+                        textSize = 20f
+                        text = neighbour.ss.toString()
+                    }
+                    tableRowValues.addView(SS, 2)
+                    textViewList.add(SS)
+
+
+
+                    binding.tableLayout.addView(tableRowValues, currRow)
+                    currRow++
+                }
+            }
+
+
+            if (neighbour.Type == "2G" && networkHeaders == Networks.GSM) {
+                getContext()?.let { ctx ->
+                    val tableRowValues = TableRow(ctx)
+                    tableRowValues.layoutParams = TableLayout.LayoutParams(
+                        TableLayout.LayoutParams.MATCH_PARENT,
+                        TableLayout.LayoutParams.WRAP_CONTENT
+                    )
+
+                    val textViewList = mutableListOf<TextView>()
+
+                    val LAC = TextView(ctx).apply {
+                        textSize = 20f
+                        if (neighbour.lac == Int.MAX_VALUE){}
+                        text =  neighbour.lac.toString()
+                    }
+                    tableRowValues.addView(LAC, 0)
+                    textViewList.add(LAC)
+
+                    val CELLID = TextView(ctx).apply {
+                        textSize = 20f
+                        text = neighbour.ci.toString()
+                    }
+                    tableRowValues.addView(CELLID, 1)
+                    textViewList.add(CELLID)
+
+
+                    val ARFCN = TextView(ctx).apply {
+                        textSize = 20f
+                        text = neighbour.Arfcn.toString()
+                    }
+                    tableRowValues.addView(ARFCN, 2)
+                    textViewList.add(ARFCN)
+
+                    val BSIC = TextView(ctx).apply {
+                        textSize = 20f
+                        text = neighbour.bsic.toString()
+                    }
+                    tableRowValues.addView(BSIC, 3)
+                    textViewList.add(BSIC)
+
+                    val RSSI = TextView(ctx).apply {
+                        textSize = 20f
+                        text = neighbour.rssi2g.toString()
+                    }
+                    tableRowValues.addView(RSSI, 4)
+                    textViewList.add(RSSI)
+
+
+
+                    binding.tableLayout.addView(tableRowValues, currRow)
+                    currRow++
+                }
+            }
+
+
         }
+
     }
 
 
@@ -315,6 +328,8 @@ class NeighborsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         registerLocReceiver()
+        NeighborsUpdate()
+
     }
 
 
@@ -324,7 +339,7 @@ class NeighborsFragment : Fragment() {
                 val infoNeighbours =
                     neighbours.getSerializableExtra(ServiceBack.INFO_NEIGHBOURS) as ArrayList<InfoNeiborhood>
                 Log.d("Info about Neighbours", infoNeighbours.toString())
-                createTable(infoNeighbours);
+                createTable(infoNeighbours)
             }
         }
     }
