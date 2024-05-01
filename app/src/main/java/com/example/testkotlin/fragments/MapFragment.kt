@@ -15,15 +15,20 @@ import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
+import com.example.testkotlin.MainViewModel
 import com.example.testkotlin.R
 import com.example.testkotlin.databinding.FragmentMapBinding
 import com.example.testkotlin.fragmentsimport.SignalStrengthServer
 import com.example.testkotlin.utils.checkPermission
 import com.yandex.mapkit.Animation
 import com.yandex.mapkit.MapKitFactory
+import com.yandex.mapkit.geometry.Geometry
 import com.yandex.mapkit.geometry.Point
+import com.yandex.mapkit.geometry.Polyline
 import com.yandex.mapkit.layers.ObjectEvent
 import com.yandex.mapkit.map.CameraPosition
 import com.yandex.mapkit.user_location.UserLocationLayer
@@ -35,34 +40,41 @@ import com.yandex.runtime.image.ImageProvider.fromResource
 import com.yandex.mapkit.map.CameraListener
 import com.yandex.mapkit.map.CameraUpdateReason
 import com.yandex.mapkit.map.Map
+import com.yandex.mapkit.map.MapObjectCollection
 import com.yandex.mapkit.user_location.UserLocationObjectListener
 import com.yandex.mapkit.user_location.UserLocationView
+import com.yandex.runtime.image.ImageProvider
 import kotlinx.coroutines.launch
 
 class MapFragment : Fragment(), UserLocationObjectListener, CameraListener {
+
+
+
     private lateinit var pLauncher: ActivityResultLauncher<Array<String>>
     private lateinit var binding: FragmentMapBinding
     private lateinit var locationmapkit: UserLocationLayer
     private var routeStartLocation = Point(0.0, 0.0)
     private var permissionLocation = false
     private var followUserLocation = false
-
+    private val model : MainViewModel by activityViewModels()
+    var lat: Double  = 0.0
+    var lon: Double  = 0.0
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        lifecycleScope.launch {
-            SignalStrengthServer()
-        }
+
 
 
 //        settOsm()
         setYandex()
-
         binding = FragmentMapBinding.inflate(inflater, container, false)
         var mapKit = MapKitFactory.getInstance()
         locationmapkit = mapKit.createUserLocationLayer(binding.yandex.mapWindow)
         userInterface()
+
+
+
         return binding.root
 
     }
@@ -70,9 +82,40 @@ class MapFragment : Fragment(), UserLocationObjectListener, CameraListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         registerPermissions()
-
-
+        locationUpdate()
     }
+
+    private fun locationUpdate() =with(binding){
+        model.locationUpdates.observe(viewLifecycleOwner){
+            lat = it.lat
+            lon = it.lon
+            lifecycleScope.launch {
+                SignalStrengthServer()
+            }
+
+            val points = listOf(
+                Point(59.935493, 30.327392),
+                Point(59.938185, 30.32808),
+                Point(59.937376, 30.33621),
+                Point(59.934517, 30.335059),
+            )
+            val polyline = Polyline(points)
+
+
+
+            val polylineObject = binding.yandex.map.mapObjects.addPolyline(polyline)
+
+            polylineObject.apply {
+                strokeWidth = 5f
+                setStrokeColor(ContextCompat.getColor(requireActivity(), R.color.Grey))
+                outlineWidth = 1f
+                outlineColor = ContextCompat.getColor(requireActivity(), R.color.black)
+            }
+
+
+        }
+    }
+
 
     suspend fun SignalStrengthServer() {
         val baseURL = "http://ss.sut.dchudinov.ru/api/v1"
@@ -81,14 +124,34 @@ class MapFragment : Fragment(), UserLocationObjectListener, CameraListener {
         val server =
             com.example.testkotlin.fragmentsimport.SignalStrengthServer(baseURL, login, password)
 //    http://ss.sut.dchudinov.ru/api/v1/cells?lat=59.903119&long=30.488665&radius=0.001
-        val lat: Double = 59.903119
-        val long: Double = 30.488665
-        val radius: Double = 0.001
+        val lat: Double = lat
+        val long: Double = lon
+        val radius: Double = 0.01
         try {
-            val cells = server.getCells(lat, long, radius)
-            Log.d("Cells", cells.toString())
+            var cells = server.getCells(lat, long, radius)
+
+            Log.d("Cells", cells.cells.toString())
         }catch (ex: Exception) {
             Log.d("Cells", ex.toString())
+        }
+
+        val pinsCollection = binding.yandex.map.mapObjects.addCollection()
+
+        val points = listOf(
+
+            Point(59.935493, 30.327392) ,
+            Point(59.938185, 30.32808),
+            Point(59.937376, 30.33621),
+            Point(59.934517, 30.335059),
+        )
+
+        val imageProvider = fromResource(activity, R.mipmap.bs_for_map_foreground)
+
+        points.forEach { point ->
+            pinsCollection.addPlacemark().apply {
+                geometry = point
+                setIcon(imageProvider)
+            }
         }
 
 //    lat=59.90358805&long=30.48996893&radius=0.02&
@@ -100,6 +163,8 @@ class MapFragment : Fragment(), UserLocationObjectListener, CameraListener {
         binding = FragmentMapBinding.inflate(layoutInflater)
 
     }
+
+
 
     private fun initYandex(){
         locationmapkit.isVisible = true

@@ -83,6 +83,7 @@ class HomeFragment : Fragment() {
     var EcNo: Int = 0
     var bandwidnths = intArrayOf(0)
     var convertedBands  = intArrayOf(0)
+    var net: String = ""
 
 
 
@@ -370,6 +371,7 @@ class HomeFragment : Fragment() {
         model.bsinfoUpdate.observe(viewLifecycleOwner){
             if (it.net == "4G"){
                 calc()
+                net = "4G"
                 bsInfo.resNetworkType.text = it.net
                 Operator = it.operator
                 mcc = it.mcc
@@ -400,6 +402,7 @@ class HomeFragment : Fragment() {
 
             if (it.net == "3G"){
                 calcUmts()
+                net = "3G"
                 binding.bsInfo.resNetworkType.text = it.net
                 Operator = it.operator
                 mcc = it.mcc
@@ -427,6 +430,7 @@ class HomeFragment : Fragment() {
 
             if (it.net == "2G"){
                 calcArfcn()
+                net = "2G"
                 binding.bsInfo.resNetworkType.text = it.net
                 Operator = it.operator
                 mcc = it.mcc
@@ -462,10 +466,15 @@ class HomeFragment : Fragment() {
                 Log.d("GSP NOW", locModel.toString())
                 model.locationUpdates.value = locModel
                 if(ServiceBack.WriterIsWorking == true){
-                    writeLTEInfo()
-                    writeUMTSInfo()
-                    writeGSMInfo()
-
+                    if (net == "4G"){
+                        writeLTEInfo()
+                    }
+                    if (net == "3G"){
+                        writeUMTSInfo()
+                    }
+                    if (net == "2G"){
+                        writeGSMInfo()
+                    }
                 }
             }
 

@@ -8,17 +8,22 @@
     android:orientation="vertical">
 
 
+    <include
+        android:id="@+id/info_for_indoor"
+        layout="@layout/info_for_indoor"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_weight="1" />
 
-    <com.ortiz.touchview.TouchImageView
-        android:id="@+id/imageView"
+    <com.example.testkotlin.fragments.DrawingView
+        android:id="@+id/drawingView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:src="@color/Grey"
-        android:layout_weight="20"
+        android:layout_weight="50"
        />
 
     <include
-        android:id="@+id/butt_for_indoor"
+        android:id="@+id/buttons"
         layout="@layout/butt_for_indor"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

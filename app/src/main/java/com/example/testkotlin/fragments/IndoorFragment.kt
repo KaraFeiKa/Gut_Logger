@@ -1,6 +1,7 @@
 package com.example.testkotlin.fragments
 
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -22,28 +23,54 @@ import android.net.Uri
 import android.view.MotionEvent
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.activityViewModels
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.example.testkotlin.Info.ServiceBack
 import com.example.testkotlin.Info.SignalModel
+import com.example.testkotlin.MainViewModel
 import com.example.testkotlin.R
 import com.ortiz.touchview.TouchImageView
 
 class IndoorFragment : Fragment() {
 
+    private lateinit var binding: FragmentIndoorBinding
+    private lateinit var drawingView: DrawingView
+    private val model : MainViewModel by activityViewModels()
+    var FUL: Float = 0.0F
+    var FDL: Float = 0.0F
+    var lat: Double  = 0.0
+    var lon: Double  = 0.0
+    var Operator: CharSequence? = ""
+    var rrc: String = ""
+    var mnc: String = ""
+    var mcc: String = ""
+    var ULSpeed: String = ""
+    var DLSpeed: String = ""
+    var NameR: String = ""
+    var Mode: String = ""
+    var ci: Int = 0
+    var band: Any = intArrayOf()
+    var eNB: Int = 0
+    var Earfcn: Int = 0
+    var pci: Int = 0
+    var tac: Int = 0
     var rssi: Int = 0
     var rsrp: Int = 0
     var rsrq: Int = 0
     var snr: Int = 0
     var cqi: Int = 0
-
-    private lateinit var imageView: TouchImageView
-    private lateinit var bitmap: Bitmap
-    private lateinit var canvas: Canvas
-    private lateinit var binding: FragmentIndoorBinding
-    private val points = mutableListOf<Pair<Float, Float>>()
-
-    private var drawingMode = false
-
+    var ta: Int = 0
+    var BandPlus: Int = 0
+    var rnc: Int = 0
+    var psc: Int = 0
+    var ber: Int = 0
+    var bsic: Int = 0
+    var Arfcn: Int = 0
+    var Uarfcn: Int = 0
+    var EcNo: Int = 0
+    var bandwidnths = intArrayOf(0)
+    var convertedBands  = intArrayOf(0)
+    var net: String = ""
 
 
     override fun onCreateView(
@@ -51,209 +78,130 @@ class IndoorFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         binding = FragmentIndoorBinding.inflate(inflater, container, false)
-        imageView = binding.imageView
-        imageView.setZoom(1f)
-
-        imageView.setOnTouchListener { _, event ->
-            if (drawingMode) {
-                handleTouch(event)
-            } else {
-                false
-            }
+        drawingView = binding.drawingView
+        binding.buttons.Load.setOnClickListener {
+            chooseImageFromGallery()
         }
-
-        binding.buttForIndoor.Load.setOnClickListener {
-            loadImageFromGallery()
-        }
-
-        binding.buttForIndoor.ClearAll.setOnClickListener {
+        binding.buttons.ClearAll.setOnClickListener {
             cleanImage()
         }
 
-        binding.buttForIndoor.ClearLast.setOnClickListener {
+        binding.buttons.ClearLast.setOnClickListener {
             deleteLastPoint()
         }
 
-        binding.buttForIndoor.Save.setOnClickListener {
+        binding.buttons.Save.setOnClickListener {
             saveImageToGallery()
         }
 
-        binding.buttForIndoor.btnToggleMode.setOnClickListener {
-            drawingMode = !drawingMode
-            if (drawingMode) {
-                // Режим рисования
-                Toast.makeText(requireContext(), "Режим рисования включен", Toast.LENGTH_SHORT).show()
+        binding.buttons.toggleButton.setOnCheckedChangeListener { buttonView, isChecked ->
+            if (isChecked) {
+                // Включаем режим рисования
+                drawingView.isDrawingMode = true
             } else {
-                // Режим перемещения/приближения
-                Toast.makeText(requireContext(), "Режим рисования выключен", Toast.LENGTH_SHORT).show()
+                // Включаем режим перемещения
+                drawingView.isDrawingMode = false
             }
         }
-
-        bitmap = Bitmap.createBitmap(1500, 1500, Bitmap.Config.ARGB_8888)
-        canvas = Canvas(bitmap)
 
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        registerLocReceiver()
+        signalUpdate()
     }
 
-    private fun handleTouch(event: MotionEvent): Boolean {
-        val touchPoint = floatArrayOf(event.x, event.y)
-        val inverted = Matrix()
-        imageView.getImageMatrix().invert(inverted)
-        inverted.mapPoints(touchPoint)
-
-        val bitmapX = touchPoint[0]
-        val bitmapY = touchPoint[1]
-
-        when (event.action) {
-            MotionEvent.ACTION_DOWN -> {
-                points.add(Pair(bitmapX, bitmapY))
-                drawPoints()
-            }
-            MotionEvent.ACTION_MOVE -> {
-                // Not needed for drawing points and lines
-            }
-        }
-
-        return true
-    }
-
-    private fun loadImageFromGallery() {
-        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-        startActivityForResult(intent, PICK_IMAGE_REQUEST)
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == PICK_IMAGE_REQUEST && resultCode == Activity.RESULT_OK && data != null && data.data != null) {
-            val uri: Uri = data.data!!
-            try {
-                val selectedBitmap = MediaStore.Images.Media.getBitmap(requireContext().contentResolver, uri)
-                // Resize the selected bitmap to fit the canvas size
-                val scaledBitmap = Bitmap.createScaledBitmap(selectedBitmap, bitmap.width, bitmap.height, true)
-                // Draw the selected bitmap on the canvas
-                canvas.drawBitmap(scaledBitmap, 0f, 0f, null)
-                imageView.setImageBitmap(bitmap)
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-        points.clear()
-    }
-
-    private fun drawPoints() {
-        val tempBitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true)
-        val tempCanvas = Canvas(tempBitmap)
-        drawPoints(tempCanvas)
-        drawLines(tempCanvas)
-        imageView.setImageBitmap(tempBitmap)
-    }
-//    (rsrp >= -80)
-//    (rsrp <= -80 && rsrp >= -90)
-//    (rsrp <= -90 && rsrp >= -100)
-//    (rsrp <= -100)
-    private fun drawPoints(canvas: Canvas) {
-        val paint = Paint().apply {
-            color = Color.RED
-            style = Paint.Style.FILL
-        }
-        for (point in points) {
-            canvas.drawCircle(point.first, point.second, 10f, paint)
-        }
-    }
-
-    private fun drawLines(canvas: Canvas) {
-        val paint = Paint().apply {
-            color = Color.BLACK
-            style = Paint.Style.STROKE
-            strokeWidth = 2f
-        }
-
-        for (i in 0 until points.size - 1) {
-            canvas.drawLine(points[i].first, points[i].second, points[i + 1].first, points[i + 1].second, paint)
+    private fun saveImageToGallery() {
+        val originalBitmap = drawingView.imageBitmap ?: return
+        // Сохраняем результат
+        val resultBitmap = drawingView.saveResult(originalBitmap)
+        if (resultBitmap != null) {
+            // Сохраняем изображение в галерее устройства
+            MediaStore.Images.Media.insertImage(
+                requireContext().contentResolver,
+                resultBitmap,
+                "drawing_result_${System.currentTimeMillis()}",
+                "Drawing Result"
+            )
+            Toast.makeText(requireContext(), "Результат сохранен", Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(requireContext(), "Ошибка сохранения результата", Toast.LENGTH_SHORT).show()
         }
     }
 
     private fun cleanImage() {
-        points.clear()
-        binding.imageView.setImageBitmap(bitmap)
-    }
-
-    private fun deleteLastPoint() {
-        if (points.isNotEmpty()) {
-            points.removeAt(points.size - 1)
-            drawPoints()
-        }
-    }
-
-    private fun saveImageToGallery() {
-        val tempBitmap = bitmap?.copy(Bitmap.Config.ARGB_8888, true) ?: return
-        val canvas = Canvas(tempBitmap)
-        drawPoints(canvas)
-        drawLines(canvas)
-
-        MediaStore.Images.Media.insertImage(
-            requireContext().contentResolver,
-            tempBitmap,
-            "IndoorImage_${System.currentTimeMillis()}",
-            "Image with lines and points"
-        )
-
-        Toast.makeText(requireContext(), "Сохранено в галлерею", Toast.LENGTH_SHORT).show()
-    }
-    private val receiverSignal = object : BroadcastReceiver(){
-        override fun onReceive(context: Context?, q: Intent?) {
-            if (q?.action == ServiceBack.SIGNAL_MODLE_INTENT){
-                val signalModel = q.getSerializableExtra(ServiceBack.SIGNAL_MODLE_INTENT) as SignalModel
-
-                if (signalModel.rssi != Int.MAX_VALUE && signalModel.rssi >= -140 && signalModel.rssi <= -43){
-                    rssi = signalModel.rssi
-                }else{
-                    rssi = -0
-                }
-                if (signalModel.rsrp != Int.MAX_VALUE && signalModel.rsrp < 0){
-                    rsrp = signalModel.rsrp
-
-                }else{
-                    rsrp = -0
-
-                }
-                if (signalModel.rsrq != Int.MAX_VALUE){
-                    rsrq = signalModel.rsrq
-
-                }else{
-                    rsrq = -0
-                }
-                if (signalModel.snr != Int.MAX_VALUE){
-                    snr = signalModel.snr
-
-                }else{
-                    snr = -0
-                }
-                if (signalModel.cqi != Int.MAX_VALUE){
-                    cqi = signalModel.cqi
-                }else{
-                    cqi = -0
-                }
+        val builder = AlertDialog.Builder(requireContext())
+        builder.setMessage("Вы точно хотите удалить все точки?")
+            .setPositiveButton("Да") { dialog, _ ->
+                drawingView.clearAllPoints()
+                dialog.dismiss()
             }
+            .setNegativeButton("Отмена") { dialog, _ ->
+                dialog.dismiss()
+            }
+        val dialog = builder.create()
+        dialog.show()
+    }
+
+    private fun chooseImageFromGallery() {
+        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+        startActivityForResult(intent, REQUEST_IMAGE_FROM_GALLERY)
+    }
+
+    private fun deleteLastPoint(){
+        drawingView.undoLastPoint()
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQUEST_IMAGE_FROM_GALLERY && resultCode == Activity.RESULT_OK && data != null) {
+            val imageUri = data.data
+            drawingView.setImageUri(imageUri)
         }
     }
 
-    private fun registerLocReceiver(){
-        val signalFilter = IntentFilter(ServiceBack.SIGNAL_MODLE_INTENT)
-        LocalBroadcastManager.getInstance(activity as AppCompatActivity).registerReceiver(receiverSignal, signalFilter)
+    private fun signalUpdate() {
+        // Остальной код
 
+        model.signalUpdate.observe(viewLifecycleOwner) { signalModel ->
+            // Обновляем значение rsrp
+            rsrp = if (signalModel.rsrp != Int.MAX_VALUE && signalModel.rsrp < 0) {
+                signalModel.rsrp
 
+            } else {
+                -401 // Значение по умолчанию, если rsrp не в диапазоне
+            }
+            rssi = if (signalModel.rssi!= Int.MAX_VALUE && signalModel.rssi >= -140 && signalModel.rssi <= -43){
+                signalModel.rssi
+            }else{
+                -401 // Значение по умолчанию, если rsrp не в диапазоне
+            }
+            rsrq = if (signalModel.rsrq!= Int.MAX_VALUE){
+                signalModel.rsrq
+            }else{
+                -401 // Значение по умолчанию, если rsrp не в диапазоне
+            }
+            snr = if (signalModel.snr!= Int.MAX_VALUE ){
+                signalModel.snr
+            }else{
+                -401 // Значение по умолчанию, если rsrp не в диапазоне
+            }
+
+            binding.infoForIndoor.rerRsrp.text = "RSRP: $rsrp дБм"
+            binding.infoForIndoor.resRssi.text = "RSSI: $rssi дБм"
+            binding.infoForIndoor.resRsrq.text = "RSRQ: $rsrq дБ"
+            binding.infoForIndoor.resSnr.text = "SNR: $snr дБ"
+            binding.drawingView.rsrp = rsrp
+//            binding.drawingView.rssi = rssi
+        }
     }
+
+
 
     companion object {
         @JvmStatic
         fun newInstance() = IndoorFragment()
-        private const val PICK_IMAGE_REQUEST = 1
-
+        private const val REQUEST_IMAGE_FROM_GALLERY = 100
     }
 }
