@@ -68,6 +68,8 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context, attrs) 
         matrix.postTranslate(offsetX, offsetY)
         canvas.concat(matrix)
 
+
+        Log.d("ViewScale", "Scale: $scale, OffsetX: $offsetX, OffsetY: $offsetY")
         // Рисуем изображение
         imageBitmap?.let {
             canvas.drawBitmap(it, 0f, 0f, null)
@@ -89,6 +91,19 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context, attrs) 
         color = Color.BLACK
         style = Paint.Style.STROKE
         strokeWidth = 2f
+    }
+
+    fun zoomIn() {
+        scale *= SCALE_FACTOR
+        invalidate()
+    }
+
+    fun zoomOut() {
+        val newScale = scale / SCALE_FACTOR
+        if (newScale >= MIN_SCALE) {
+            scale = newScale
+            invalidate()
+        }
     }
 
 
@@ -151,10 +166,11 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context, attrs) 
                     lastTouchX = x
                     lastTouchY = y
                     val pointColor = when {
-                        rsrp >= -80 -> Color.GREEN
-                        rsrp >= -90 -> Color.YELLOW
-                        rsrp >= -100 -> Color.RED
-                        else -> Color.BLACK
+                        rsrp >= -70 -> Color.rgb(0,255,0)
+                        rsrp >= -80 -> Color.rgb(0, 128, 0)
+                        rsrp >= -90 -> Color.rgb(255, 255, 0)
+                        rsrp >= -100 -> Color.rgb(255, 0, 0)
+                        else -> Color.rgb(128, 0, 0)
                     }
                     pointColors.add(pointColor)
                     points.add(PointF(x, y))
@@ -235,5 +251,10 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context, attrs) 
 
         // Возвращаем Bitmap с нарисованным содержимым
         return resultBitmap
+    }
+
+    companion object {
+        private const val SCALE_FACTOR = 1f
+        private const val MIN_SCALE = 1
     }
 }

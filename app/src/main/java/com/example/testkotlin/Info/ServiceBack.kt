@@ -268,7 +268,7 @@ class MyPhoneStateListenerState(val activity: ServiceBack) : PhoneStateListener(
                 if (cell is CellInfoLte){
                     if (cell.isRegistered){
                         isNetworksType = "4G"
-                        Log.d("Signal1", cell.cellSignalStrength.toString())
+                        Log.d("Signal11", cell.cellSignalStrength.toString())
                         val signalModel=SignalModel(
                             "4G",
                             cell.cellSignalStrength.rssi,
@@ -401,7 +401,7 @@ class MyPhoneStateListenerState(val activity: ServiceBack) : PhoneStateListener(
                 if (cell is CellInfoLte){
                     if (cell.isRegistered){
                         isNetworksType = "4G"
-                        Log.d("Signal1", cell.cellSignalStrength.toString())
+                        Log.d("Signal12", cell.cellSignalStrength.toString())
                         val signalModel=SignalModel(
                             "4G",
                             cell.cellSignalStrength.rssi,
@@ -415,11 +415,11 @@ class MyPhoneStateListenerState(val activity: ServiceBack) : PhoneStateListener(
                         var bands = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                             cell.cellIdentity.bands
                         } else {
-                            TODO("VERSION.SDK_INT < R")
+                            null
                         }
-                        var band = if (bands.isNotEmpty()){
+                        var band = if (bands?.isNotEmpty() == true){
                             bands[0]
-                        } else { }
+                        } else { 0 }
                         val CID = cell.cellIdentity.ci
                         val cellidHex = activity.DecToHex(CID)
                         val eNBHex = cellidHex.substring(0, cellidHex.length - 2)
@@ -427,19 +427,19 @@ class MyPhoneStateListenerState(val activity: ServiceBack) : PhoneStateListener(
                         val bsInfoModel= cell.cellIdentity.mccString?.let {
                             cell.cellIdentity.mncString?.let { it1 ->
                                 BsInfoModel(
-                                    "4G",
-                                    it,
-                                    it1,
-                                    cell.cellIdentity.ci,
-                                    band,
-                                    activity.HexToDec(eNBHex),
-                                    cell.cellIdentity.earfcn,
-                                    cell.cellIdentity.pci,
-                                    cell.cellIdentity.tac,
-                                    cell.cellIdentity.operatorAlphaLong,
-                                )
+                                        "4G",
+                                        it,
+                                        it1,
+                                        cell.cellIdentity.ci,
+                                        band,
+                                        activity.HexToDec(eNBHex),
+                                        cell.cellIdentity.earfcn,
+                                        cell.cellIdentity.pci,
+                                        cell.cellIdentity.tac,
+                                        cell.cellIdentity.operatorAlphaLong,
+                                    )
+                                }
                             }
-                        }
                         bsInfoModel?.let { activity.sendBSData(it) }
 
                     }
@@ -458,12 +458,18 @@ class MyPhoneStateListenerState(val activity: ServiceBack) : PhoneStateListener(
                                 ss = elem[1].toInt()
                             }
                         }
+                       var ecno = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                            cell.cellSignalStrength.ecNo
+                        }else{
+                            0
+                        }
                         val signalModel=SignalModel(
                             "3G",
                             ss,
                             cell.cellSignalStrength.dbm,
                             0,
-                            cell.cellSignalStrength.ecNo
+                            ecno
+
                         )
                         activity.sendSignData(signalModel)
 
@@ -490,9 +496,15 @@ class MyPhoneStateListenerState(val activity: ServiceBack) : PhoneStateListener(
                 if (cell is CellInfoGsm){
                     if (cell.isRegistered){
                         isNetworksType = "2G"
+
+                        var rssi = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                            cell.cellSignalStrength.rssi
+                        } else {
+                            0
+                        }
                         val signalModel=SignalModel(
                             "2G",
-                            cell.cellSignalStrength.rssi,
+                            rssi,
                             cell.cellSignalStrength.dbm,
                             0,
                             cell.cellSignalStrength.bitErrorRate,
@@ -534,7 +546,7 @@ class MyPhoneStateListenerState(val activity: ServiceBack) : PhoneStateListener(
                     if (!cell.isRegistered) {
 
                         var bands = cell.cellIdentity.bands
-//                        TODO: fix it
+
                         var band = if (bands.isNotEmpty()){
                             bands[0]
                         } else { 0 }
@@ -636,9 +648,9 @@ class MyPhoneStateListenerState(val activity: ServiceBack) : PhoneStateListener(
                             var bands = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                                 cell.cellIdentity.bands
                             } else {
-                                TODO("VERSION.SDK_INT < R")
+                                null
                             }
-                            var band = if (bands.isNotEmpty()){
+                            var band = if (bands?.isNotEmpty() == true){
                                 bands[0]
                             } else { 0 }
 
@@ -686,6 +698,11 @@ class MyPhoneStateListenerState(val activity: ServiceBack) : PhoneStateListener(
                     }
                     if (cell is CellInfoGsm) {
                         if (!cell.isRegistered) {
+                            var rssi = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                                cell.cellSignalStrength.rssi
+                            } else {
+                               0
+                            }
                             val infoNeiborhood = InfoNeiborhood(
                                 "2G",
                                 0,
@@ -702,7 +719,7 @@ class MyPhoneStateListenerState(val activity: ServiceBack) : PhoneStateListener(
                                 cell.cellIdentity.cid,
                                 cell.cellIdentity.arfcn,
                                 cell.cellIdentity.bsic,
-                                cell.cellSignalStrength.rssi
+                                rssi
                             )
                             neighbours.add(infoNeiborhood)
                         }

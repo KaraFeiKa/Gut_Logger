@@ -269,28 +269,28 @@ class HomeFragment : Fragment() {
                     signalInfo.resRssi.text = "RSSI: $rssi дБм"
                 }else {
                     rssi = -401
-                    binding.signalInfo.resRssi.text = "N/a"
+                    binding.signalInfo.resRssi.text = "RSSI: N/a"
                 }
                 if (it.rsrp != Int.MAX_VALUE && it.rsrp < 0){
                         rsrp = it.rsrp
                         signalInfo.resRsrp.text = "RSRP: $rsrp дБм"
                     }else{
                         rsrp = -401
-                        signalInfo.resRsrp.text = "N/a"
+                        signalInfo.resRsrp.text = "RSRP: N/a"
                     }
                     if (it.rsrq != Int.MAX_VALUE){
                         rsrq = it.rsrq
                         signalInfo.resRsrq.text = "RSRQ: $rsrq дБ"
                     }else{
                         rsrq = -401
-                        signalInfo.resRsrq.text = "N/a"
+                        signalInfo.resRsrq.text = "RSRQ: N/a"
                     }
                     if (it.snr != Int.MAX_VALUE){
                         snr = it.snr
                         signalInfo.resSnr.text = "SNR: $snr дБ"
                     }else{
                         snr = -401
-                        signalInfo.resSnr.text = "N/a"
+                        signalInfo.resSnr.text = "SNR: N/a"
                     }
                     if (it.cqi != Int.MAX_VALUE){
                         cqi = it.cqi
@@ -383,7 +383,7 @@ class HomeFragment : Fragment() {
                 eNB = it.eNB
                 pci = it.pci
                 Earfcn =it.Earfcn
-                if (it.band != Unit){
+                if (it.band != 0 && it.band != Unit){
                     band = it.band
                 }
                 else{

@@ -22,6 +22,20 @@
         android:layout_weight="50"
        />
 
+    <Button
+        android:id="@+id/zoomInButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="+" />
+
+    <Button
+        android:id="@+id/zoomOutButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="-" />
+
     <include
         android:id="@+id/buttons"
         layout="@layout/butt_for_indor"

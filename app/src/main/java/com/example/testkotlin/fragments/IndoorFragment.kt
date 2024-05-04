@@ -94,6 +94,14 @@ class IndoorFragment : Fragment() {
             saveImageToGallery()
         }
 
+        binding.zoomInButton.setOnClickListener {
+            drawingView.zoomIn()
+        }
+
+        binding.zoomOutButton.setOnClickListener {
+            drawingView.zoomOut()
+        }
+
         binding.buttons.toggleButton.setOnCheckedChangeListener { buttonView, isChecked ->
             if (isChecked) {
                 // Включаем режим рисования

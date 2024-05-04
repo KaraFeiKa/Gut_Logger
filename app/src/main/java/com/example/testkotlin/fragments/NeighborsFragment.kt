@@ -74,7 +74,7 @@ class NeighborsFragment : Fragment() {
 
                 labels.forEachIndexed { index, label ->
                     val textView = TextView(ctx)
-                    textView.textSize = 20f
+                    textView.textSize = 18f
                     textView.text = "$label   "
                     tableRowLte.addView(textView, index)
                     textViewList.add(textView)
@@ -98,7 +98,7 @@ class NeighborsFragment : Fragment() {
 
                 labels.forEachIndexed { index, label ->
                     val textView = TextView(ctx)
-                    textView.textSize = 20f
+                    textView.textSize = 18f
                     textView.text = "$label   "
                     tableRowUMTS.addView(textView, index)
                     textViewList.add(textView)
@@ -123,7 +123,7 @@ class NeighborsFragment : Fragment() {
 
                 labels.forEachIndexed { index, label ->
                     val textView = TextView(ctx)
-                    textView.textSize = 20f
+                    textView.textSize = 18f
                     textView.text = "$label   "
                     tableRow.addView(textView, index)
                     textViewList.add(textView)
@@ -159,14 +159,14 @@ class NeighborsFragment : Fragment() {
                     val textViewList = mutableListOf<TextView>()
 
                     val tvPciVal = TextView(ctx).apply {
-                        textSize = 20f
+                        textSize = 18f
                         text =  neighbour.pci.toString()
                     }
                     tableRowValues.addView(tvPciVal, 0)
                     textViewList.add(tvPciVal)
 
                     val tvEarfcnVal = TextView(ctx).apply {
-                        textSize = 20f
+                        textSize = 18f
                         text = neighbour.Earfcn.toString()
                     }
                     tableRowValues.addView(tvEarfcnVal, 1)
@@ -174,7 +174,7 @@ class NeighborsFragment : Fragment() {
 
 
                     val tvBandVal = TextView(ctx).apply {
-                        textSize = 20f
+                        textSize = 18f
                         text = neighbour.band.toString()
                     }
                     tableRowValues.addView(tvBandVal, 2)
@@ -182,7 +182,7 @@ class NeighborsFragment : Fragment() {
 
 
                     val tvRssiVal = TextView(ctx).apply {
-                        textSize = 20f
+                        textSize = 18f
                         val rssi = neighbour.rssi
                         text = if (rssi != Integer.MAX_VALUE) rssi.toString() else "N/a"
                     }
@@ -190,7 +190,7 @@ class NeighborsFragment : Fragment() {
                     textViewList.add(tvRssiVal)
 
                     val tvRsrpVal = TextView(ctx).apply {
-                        textSize = 20f
+                        textSize = 18f
                         val rsrp = neighbour.rsrp
                         text = if (rsrp != Integer.MAX_VALUE) rsrp.toString() else "N/a"
                     }
@@ -198,7 +198,7 @@ class NeighborsFragment : Fragment() {
                     textViewList.add(tvRsrpVal)
 
                     val tvRsrqVal = TextView(ctx).apply {
-                        textSize = 20f
+                        textSize = 18f
                         val rsrq =neighbour. rsrq
                         text = if (rsrq != Integer.MAX_VALUE) rsrq.toString() else "N/a"
                     }
@@ -206,7 +206,7 @@ class NeighborsFragment : Fragment() {
                     textViewList.add(tvRsrqVal)
 
                     val tvTaVal = TextView(ctx).apply {
-                        textSize = 20f
+                        textSize = 18f
                         val ta =neighbour. ta
                         text = if (ta != Integer.MAX_VALUE) {
                             ta.toString()
@@ -234,14 +234,14 @@ class NeighborsFragment : Fragment() {
                     val textViewList = mutableListOf<TextView>()
 
                     val PSC = TextView(ctx).apply {
-                        textSize = 20f
+                        textSize = 18f
                         text =  neighbour.psc.toString()
                     }
                     tableRowValues.addView(PSC, 0)
                     textViewList.add(PSC)
 
                     val UARFCN = TextView(ctx).apply {
-                        textSize = 20f
+                        textSize = 18f
                         text = neighbour.Uarfcn.toString()
                     }
                     tableRowValues.addView(UARFCN, 1)
@@ -249,7 +249,7 @@ class NeighborsFragment : Fragment() {
 
 
                     val SS = TextView(ctx).apply {
-                        textSize = 20f
+                        textSize = 18f
                         text = neighbour.ss.toString()
                     }
                     tableRowValues.addView(SS, 2)
@@ -274,7 +274,7 @@ class NeighborsFragment : Fragment() {
                     val textViewList = mutableListOf<TextView>()
 
                     val LAC = TextView(ctx).apply {
-                        textSize = 20f
+                        textSize = 18f
                         if (neighbour.lac == Int.MAX_VALUE){}
                         text =  neighbour.lac.toString()
                     }
@@ -282,7 +282,7 @@ class NeighborsFragment : Fragment() {
                     textViewList.add(LAC)
 
                     val CELLID = TextView(ctx).apply {
-                        textSize = 20f
+                        textSize = 18f
                         text = neighbour.ci.toString()
                     }
                     tableRowValues.addView(CELLID, 1)
@@ -290,21 +290,21 @@ class NeighborsFragment : Fragment() {
 
 
                     val ARFCN = TextView(ctx).apply {
-                        textSize = 20f
+                        textSize = 18f
                         text = neighbour.Arfcn.toString()
                     }
                     tableRowValues.addView(ARFCN, 2)
                     textViewList.add(ARFCN)
 
                     val BSIC = TextView(ctx).apply {
-                        textSize = 20f
+                        textSize = 18f
                         text = neighbour.bsic.toString()
                     }
                     tableRowValues.addView(BSIC, 3)
                     textViewList.add(BSIC)
 
                     val RSSI = TextView(ctx).apply {
-                        textSize = 20f
+                        textSize = 18f
                         text = neighbour.rssi2g.toString()
                     }
                     tableRowValues.addView(RSSI, 4)
